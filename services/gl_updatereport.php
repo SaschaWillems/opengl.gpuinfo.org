@@ -95,9 +95,25 @@
 	}
 	
 	// Generate history entry
-	$log = "Updated fields :<br>";
-	for ($i=0; $i<sizeof($capsUpdated); $i++) {
-		$log .= $capsUpdated[$i] . " = " . $capsNewValue[$i] . "<br>";
+	if (sizeof($capsUpdated) > 0) {
+		$log = "Updated fields :<br>";
+		for ($i=0; $i<sizeof($capsUpdated); $i++) {
+			$log .= $capsUpdated[$i] . " = " . $capsNewValue[$i] . "<br>";
+		}
+	}
+	
+	// Compressed texture format
+	$formatsInserted = array();
+	foreach ($nodes->item(0)->getElementsByTagName("compressedtextureformat") as $formatNode) {
+		$formatEnum = $formatNode->textContent; 
+		mysql_query("insert ignore into compressedTextureFormats (reportId, formatEnum) values ($reportId, $formatEnum)");
+		$formatsInserted[] = $formatNode->textContent;
+	}
+	
+	// Generate history entry
+	if (sizeof($formatsInserted) > 0) {
+		$log .= "Inserted compressed texture formats :<br>";
+		$log .= implode("<br>", $formatsInserted);
 	}
 
 	$msg = "http://delphigl.de/glcapsviewer/gl_generatereport.php?reportID=$reportId\n\nSubmitter : $submitter\n\nLog : $log";
@@ -110,9 +126,12 @@
 	if (sizeof($capsUpdated) > 0) {
 		echo sizeof($capsUpdated), " capabilities have been added. See the report history for details!";
 		echo "\n\nThanks for your contribution!";
-	} else {
-		echo "No capabilities have been updated!";
-	}
+	};
+	if (sizeof($formatsInserted) > 0) {
+		echo sizeof($formatsInserted), " compressed texture formats have been added to the report. See the report history for details!";
+		echo "\n\nThanks for your contribution!";
+	};	
+	
 	
 	dbDisconnect();	 
 ?>
