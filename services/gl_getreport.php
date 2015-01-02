@@ -29,6 +29,7 @@
 	$sqlresult = mysql_query("select * from openglcaps where reportId = $reportId");
 	echo "<report>";
 
+	// Implementation details and capabilities
 	echo "<implementation>";	
 	$skipfields = array("ReportID", "description", "appversion", "fileversion", "submitter", "extensions", "submissiondate", "note", "contexttype", "os");
 	$colindex  = 0;    
@@ -45,6 +46,7 @@
 	}	
 	echo "</implementation>";
 
+	// Extensions
 	echo "<extensions>";
 	$str = "SELECT Name FROM openglgpuandext LEFT JOIN openglextensions ON openglextensions.PK = openglgpuandext.ExtensionID WHERE openglgpuandext.ReportID = $reportId ORDER BY FIELD(SUBSTR(openglextensions.Name, 1, 3), 'GL_') DESC, FIELD(SUBSTR(openglextensions.Name, INSTR(openglextensions.Name, '_')+1, 3), 'EXT', 'ARB') DESC, openglextensions.Name ASC";  
 	$sqlresult = mysql_query($str);  
@@ -54,6 +56,16 @@
 		}
 	}	 	
 	echo "</extensions>";
+	
+	// Compressed texture formats
+	$sqlresult = mysql_query("select formatEnum from compressedTextureFormats where reportId = $reportId");
+	echo "<compressedtextureformats>";
+	while($row = mysql_fetch_row($sqlresult)) {	
+		foreach ($row as $data) {
+			echo "<format>$data</format>";
+		}
+	}	 	
+	echo "</compressedtextureformats>";
 	
 		
 	echo "</report>";
