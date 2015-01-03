@@ -286,6 +286,9 @@
 	?>
 	<script>
 		$('.same').hide();
+		$(document).ready(function() {
+			$('#tabs').tabs("option", "active", 1);
+		});		
 	</script>
 	<?php
 	}
