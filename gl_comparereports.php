@@ -1,3 +1,18 @@
+<head>
+  <link rel="stylesheet" href="./libs/jquery-ui/themes/flick/jquery-ui.css">
+  <script src="./libs/jquery.min.js"></script>
+  <script src="./libs/jquery-ui/jquery-ui.min.js"></script>
+  <script>
+  $(function() {
+    $( "#tabs" ).tabs();
+  });
+  function showDiffOnly() {
+	$('.same').toggle()
+  }
+  </script>
+</head>
+<body>
+<div>
 <?php
 	/* 		
 	*
@@ -26,6 +41,10 @@
 	dbConnect();	
   
 	echo "<div id='content'>";
+	$extDiffOnly = false;
+	if (isset($_GET['extDiffOnly'])) {
+		$extDiffOnly = true;
+	}
   
 	if (isset($_GET['compare'])) {
 		$reportids = array();
@@ -45,14 +64,20 @@
 
 		// Header
 		$colspan = count($reportids) + 1;	
-		echo "<table>";
-		echo "<tr><td id='tableheader' colspan=$colspan><b>Comparing ". count($reportids) ." reports</b></td></tr>";
+		
+	echo "<table width='80%'><tr><td valign=top>"; 
+	
+	echo "<div id='tabs' style='font-size:12px;'>";
+	echo "<ul>";
+	echo "<h2 style='margin-left:10px;'>Comparing OpenGL reports</h2>";
+    echo "<li><a href='#tabs-1'>Implementation</a></li>";
+    echo "<li><a href='#tabs-2'>Extensions</a></li>";
+	echo "</ul>";		
+		
+	// Implementation and capabilities
+	echo "<div id='tabs-1'>";
+	echo "<table width='95%'>";
  
-		echo "<tr><td class='caption'>OpenGL identifier</td>";
-		foreach ($reportids as $repid) {
-			echo "<td class='caption'>Report No. $repid</td>";
-		}
-		echo "</tr>";
 
 		$repids = implode(",", $reportids);   
 		$sql       = "SELECT * FROM openglcaps WHERE ReportID IN (" . $repids . ")" ;
@@ -97,7 +122,7 @@
 		}   
 
 		// Generate table from selected reports
-		$index = 0;  
+		$index = 1;  
 		for ($i = 0, $arrsize = sizeof($column[0]); $i < $arrsize; ++$i) { 	  
 			$add = "";
 			$bgcolor  = $index % 2 == 0 ? $bgcolordef : $bgcolorodd; 	  
@@ -154,10 +179,15 @@
 	else {	  
 		echo "No reports to compare...";
 	}
+	
+	echo "</table></div>";	
      
 		
-	// List Extensions
-	if (isset($_GET['compare'])) {  	   
+	// Extensions
+	echo "<div id='tabs-2'>";
+	echo "<button onclick='showDiffOnly();'>Toggle all / diff only</button>";
+	
+	echo "<table width='95%'>";
 		// Gather all extensions supported by at least one of the reports
 		$str = "SELECT DISTINCT Name FROM openglgpuandext LEFT JOIN openglextensions ON openglextensions.PK = openglgpuandext.ExtensionID WHERE openglgpuandext.ReportID IN ($repids)  ORDER BY FIELD(SUBSTR(openglextensions.Name, 1, 3), 'GL_') DESC, FIELD(SUBSTR(openglextensions.Name, INSTR(openglextensions.Name, '_')+1, 3), 'EXT', 'ARB') DESC, openglextensions.Name ASC";	
 		$sqlresult = mysql_query($str); 
@@ -186,26 +216,32 @@
 
 		// Generate table
 		$colspan = count($reportids) + 1;	
-		echo "<tr><td>&nbsp;</td></tr>";
-		echo "<TR><TD id='tableheader' colspan=$colspan><a name='extensions'>Supported extensions</a></TD></TR>"; 
 
-		// Renderer
-		echo "<tr class='firstrow'>&nbsp;<td>";		
-		foreach ($reportids as $repid) {
-			$sqlresult = mysql_query("SELECT GL_RENDERER FROM openglcaps WHERE ReportID = $repid"); 
-			$sqlrow = mysql_fetch_object($sqlresult);
-			echo "<td class='valuezeroleftblack'><b>$sqlrow->GL_RENDERER</b></td>";
+		// Implementation info 
+		$headerFields = array("GL_VENDOR", "GL_RENDERER", "GL_VERSION");
+		$rowindex = 1;
+		foreach ($headerFields as $headerField) {
+			$bgcolor  = $rowindex % 2 == 0 ? $bgcolordef : $bgcolorodd; 
+			echo "<tr class='firstrow' style='background-color:$bgcolor;'>";		
+			echo "<td class='firstrow'>$headerField</td>";		 
+				foreach ($reportids as $repid) {
+					$sqlresult = mysql_query("SELECT $headerField FROM openglcaps WHERE ReportID = $repid"); 
+					$sqlrow = mysql_fetch_row($sqlresult);
+					echo "<td class='valuezeroleftblack'><b>$sqlrow[0]</b></td>";
+				}	
+			echo "</tr>";
+			$rowindex++;
 		}		
-		echo "</tr>";
 
 		// Extension count 	
-		echo "<tr><td class='firstrow'>&nbsp;</td>"; 
+		$bgcolor  = $rowindex % 2 == 0 ? $bgcolordef : $bgcolorodd; 
+		echo "<tr class='firstrow' style='background-color:$bgcolor;'><td class='firstrow'>Extension count</td>"; 
 		for ($i = 0, $arrsize = sizeof($extarray); $i < $arrsize; ++$i) { 	  
 			echo "<td class='valuezeroleftdark'>".count($extarray[$i])."</td>";
 		}
 		echo "</tr>"; 		
+		$rowindex++;
 		
-		$rowindex = 0;
 		foreach ($extcaption as $extension){
 		
 			// Check if missing it at least one report
@@ -223,7 +259,15 @@
 			if ($missing) {
 				$add = 'color:#FF0000;';
 			}
-			echo "<tr style='background-color:$bgcolor;$add'><td class='firstrow'>$extension</td>\n";		 
+			$className = "same";
+			$index = 0;
+			foreach ($reportids as $repid) {
+				if (!in_array($extension, $extarray[$index])) { 
+					$className = "diff";
+				}
+				$index++;
+			}
+				echo "<tr style='background-color:$bgcolor;$add' class='$className'><td class='firstrow'>$extension</td>\n";		 
 			$index = 0;
 			foreach ($reportids as $repid) {
 				if (in_array($extension, $extarray[$index])) { 
@@ -234,12 +278,18 @@
 				$index++;
 			}  
 			$rowindex++;
-		echo "</tr>\n"; 
+		echo "</tr>"; 
 		}	  
-		echo "</table>";	
+	echo "</table></div>";	
+	
+	if ($extDiffOnly) {
+	?>
+	<script>
+		$('.same').hide();
+	</script>
+	<?php
 	}
-   
-	mysql_close();
+	dbDisconnect();
 	include("./gl_footer.inc");	?>
 </div>
 </body>
