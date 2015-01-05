@@ -9,7 +9,6 @@ table {
 	border-style: solid;
 	border-color: black;
 	border-collapse: collapse;
-	margin: 15px; 15px; 15px; 15px;
 	font-family: Verdana, Helvetica, sans-serif;
 	}
 	
@@ -347,7 +346,7 @@ a:hover { font-weight:bold; color:#31a9db; text-decoration:none; }
 }
 
 #content{
-	width:85%;
+	width:87%;
 	height:100%;
 	background:#FFFFFF;
 	float:left;
