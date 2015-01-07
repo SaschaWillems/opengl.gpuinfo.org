@@ -28,14 +28,14 @@ table.td {
   background-color:#99adf5;
  }
  
-#tableheader 
+.tableheader 
  {
  border-bottom:1px solid gray;
- font-weight:bold;
  color:#31a9db;
  text-align:left;
+ padding-bottom:5px;
  border-bottom:2px solid #31a9db; 
- margin-bottom:5px;
+ margin-bottom:10px;
 }
 
 #reporttableheader 
