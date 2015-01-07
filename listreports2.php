@@ -94,74 +94,68 @@
 	
 	<form method="get" action="gl_comparereports.php?compare" style="margin-bottom:0px;">
 		
-		<?php
-			
-			// Submitter
-			if($_GET['submitter'] != '') {
-				$submitter = mysql_real_escape_string(strtolower($_GET['submitter']));
-				echo "<table style='margin-bottom:10px; margin-top:10px;' border=0 width='100%'><tr><td id='tableheader' colspan=$colspan><b>\n";
-				echo "Reports submitted by <b>$submitter</b>";	 
-				echo "</b></td></tr></thead></table>";		  
-			}	
-			
-			$groupby = $_GET['groupby'];
-
-			$sortorder = "ORDER BY reportid desc";
-			$vendorheader = false;
-			$negate = false;
-			$caption = "";
-			
-			$colspan = 7;
-			
-			// Like filter
-			$like = '';
-			$andlike = '';
-			if(isset($_GET['searchstring'])) {	 
-				$filter  = mysql_real_escape_string(strtolower($_GET['searchstring']));
-				$like = ' where GL_RENDERER like "%'.$filter.'%" ';
-				$andlike = ' and GL_RENDERER like "%'.$filter.'%" ';
-			}
-			
-			// Searching via in-page form
-			$searchstring = '';
-			//if(isset($_POST['submit'])) {	 
-			$searchstring  = mysql_real_escape_string(strtolower($_POST['searchstring']));
-			//} 
-			
-			// External search (e.g. via statistics page)
-			if($_GET['listreportsbyextension'] != '') {
-				$searchstring  = mysql_real_escape_string(strtolower($_GET['listreportsbyextension']));
-			}
-			
-			if($_GET['listreportsbyextensionunsupported'] != '') {
-				$searchstring  = mysql_real_escape_string(strtolower($_GET['listreportsbyextensionunsupported']));
-				$negate = true;
-			}
-			
-			if ($searchstring != '')	 
-			{
-				echo "<table style='margin-bottom:10px; margin-top:10px;' border=0 width='100%'><tr><td id='tableheader' colspan=$colspan><b>\n";
-				if ($negate == false) {
-					echo "Displaying all reports supporting <b>".strtoupper($searchstring)." </b> :";	   	  
-				}
-				if ($negate == true) {
-					echo "Displaying all reports not supporting <b>".strtoupper($searchstring)." </b> :";	 
-				}
-				echo "</b></td></tr></thead></table>";		  
-			}	 
-			
-			
-			if (($searchstring == '') and ($submitter == '')) {   
-				echo "<table style='margin-bottom:10px; margin-top:10px;' border=0 width='100%'><tr><td id='tableheader' colspan=$colspan><b>\n";				
-				quickstats();  
-				echo "</b></td></tr></thead></table>";		  
-			} 
-			
-			
-		?>
-		
 		<table  border="0" id="reports" class="table table-striped table-bordered" cellspacing="0" width="100%">
 			<?php					
+								
+				// Submitter
+				if($_GET['submitter'] != '') {
+					$submitter = mysql_real_escape_string(strtolower($_GET['submitter']));
+					echo "<caption class='tableheader'>Reports submitted by <b>$submitter</b></class>";	 
+				}	
+				
+				$groupby = $_GET['groupby'];
+				
+				$sortorder = "ORDER BY reportid desc";
+				$vendorheader = false;
+				$negate = false;
+				$caption = "";
+				
+				$colspan = 7;
+				
+				// Like filter
+				$like = '';
+				$andlike = '';
+				if(isset($_GET['searchstring'])) {	 
+					$filter  = mysql_real_escape_string(strtolower($_GET['searchstring']));
+					$like = ' where GL_RENDERER like "%'.$filter.'%" ';
+					$andlike = ' and GL_RENDERER like "%'.$filter.'%" ';
+				}
+				
+				// Searching via in-page form
+				$searchstring = '';
+				//if(isset($_POST['submit'])) {	 
+				$searchstring  = mysql_real_escape_string(strtolower($_POST['searchstring']));
+				//} 
+				
+				// External search (e.g. via statistics page)
+				if($_GET['listreportsbyextension'] != '') {
+					$searchstring  = mysql_real_escape_string(strtolower($_GET['listreportsbyextension']));
+				}
+				
+				if($_GET['listreportsbyextensionunsupported'] != '') {
+					$searchstring  = mysql_real_escape_string(strtolower($_GET['listreportsbyextensionunsupported']));
+					$negate = true;
+				}
+				
+				if ($searchstring != '')	 
+				{
+					echo "<caption class='tableheader'>";
+					if ($negate == false) {
+						echo "Displaying all reports supporting <b>".strtoupper($searchstring)." </b>";	   	  
+					}
+					if ($negate == true) {
+						echo "Displaying all reports not supporting <b>".strtoupper($searchstring)." </b>";	 
+					}
+					echo "</caption>";		  
+				}	 
+				
+				
+				if (($searchstring == '') and ($submitter == '')) {   
+					echo "<caption class='tableheader'><b>";				
+					quickstats();  
+					echo "</b></class>";		  
+				} 
+				
 				
 				if ($groupby != '') {
 					// Group reports by renderer, os, etc.
@@ -224,7 +218,7 @@
 							
 							$os = trim($row->operatingsystem) != '' ? $row->operatingsystem : 'Unknown';
 							
-							echo "<tr><td id='tableheader' style='padding-top:20px; font-size: 12px; padding-left:10px;' colspan = 6><b>$os</b></td></tr>";			
+							//echo "<tr><td id='tableheader' style='padding-top:20px; font-size: 12px; padding-left:10px;' colspan = 6><b>$os</b></td></tr>";			
 							
 							$sqlsubresult = mysql_query("SELECT *, date(submissiondate) as reportdate from openglcaps WHERE trim(os) = '$row->operatingsystem' ORDER BY GL_VERSION desc");
 							
