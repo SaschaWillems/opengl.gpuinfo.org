@@ -27,7 +27,7 @@
 		   <li class='active'><a href='#'><span>List</span></a></li>
 			   <li class='has_sub' style="font-size:12px; padding-left:20px;"><a href='./listreports2.php?sortby=date_desc'><span>Reports</span></a></li>
 				   <li class='has_sub' style="font-size:12px; padding-left:30px;"><a href='./listreports2.php?groupby=renderer'><span>By Renderer</span></a></li>
-				   <li class='has_sub' style="font-size:12px; padding-left:30px;"><a href='./listreports2.php?groupby=version'><span>By Version</span></a></li>
+				   <li class='has_sub' style="font-size:12px; padding-left:30px;"><a href='./gl_reports_by_version.php'><span>By Version</span></a></li>
 				   <li class='has_sub' style="font-size:12px; padding-left:30px;"><a href='./gl_reports_by_os.php'><span>By OS</span></a></li>
 			   <li class='active_inset' style="font-size:12px; padding-left:20px;"><a href='./gl_extensions.php'><span>Extensions</span></a></li>
 			   <li class='active_inset' style="font-size:12px; padding-left:20px;"><a href='./gl_stats_caps.php'><span>Capabilities</span></a></li>
