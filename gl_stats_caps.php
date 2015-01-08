@@ -42,7 +42,8 @@
 <div id="content">
 	
 	<table border="0" id="caps" class="table table-striped table-bordered" cellspacing="0" width="100%">
-		<thead><tr><td class="caption">OpenGL implementation capability</td></tr></thead>
+		<caption class='tableheader'>Displaying available OpenGl implementation capabilities </caption>
+		<thead><tr><td class="caption">Capability name</td></tr></thead>
 		
 		<?php		
 			$sqlresult = mysql_query("SELECT * FROM openglcaps WHERE ReportID = 1") or die(mysql_error());  	
