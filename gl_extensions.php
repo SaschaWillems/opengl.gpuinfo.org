@@ -1,11 +1,14 @@
 <head>
 	<link rel="stylesheet" href="./libs/jquery-ui/themes/flick/jquery-ui.css">
-	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-	<link rel="stylesheet" href="//cdn.datatables.net/plug-ins/3cfcc339e89/integration/bootstrap/3/dataTables.bootstrap.css">	
+	<link rel="stylesheet" href="./libs/bootstrap.min.css">
+	<link rel="stylesheet" href="./libs/dataTables.bootstrap.css">	
+	<link rel="stylesheet" href="./libs/dataTables.searchHighlight.css">	
 	<script src="./libs/jquery.min.js"></script>
 	<script src="./libs/jquery-ui/jquery-ui.min.js"></script>
-	<script src="//cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
-	<script src="//cdn.datatables.net/plug-ins/3cfcc339e89/integration/bootstrap/3/dataTables.bootstrap.js"></script>
+	<script src="./libs/jquery.highlight.js"></script>
+	<script src="./libs/jquery.dataTables.min.js"></script>
+	<script src="./libs/dataTables.bootstrap.js"></script>
+	<script src="./libs/dataTables.searchHighlight.min.js"></script>
 </head>
 
 <?php 
@@ -143,7 +146,9 @@
 <script>
 	$(document).ready(function() {
 		$('#extensions').DataTable({
-			"pageLength" : 50
+			"pageLength" : 50,
+			"searchHighlight" : true,		
+			"lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ]
 		});
 	} );	
 </script>
