@@ -57,7 +57,7 @@
 				echo "<td class='caption' align=center><input type='submit' name='compare' value='compare'></td>";
 				echo "</tr></thead><tbody>"; 
 				
-				$str = "SELECT *, date(submissiondate) as reportdate, contextTypeName(contexttype) as ctxType, replace(trim(replace(gl_renderer, '\n', '')), '\r', '') as renderer FROM openglcaps";	  	    //  order by renderer, gl_version
+				$str = "SELECT *, date(submissiondate) as reportdate, contextTypeName(contexttype) as ctxType, replace(trim(replace(gl_renderer, '\n', '')), '\r', '') as renderer FROM openglcaps order by renderer asc, gl_version desc";	
 				
 				$sqlresult = mysql_query($str); 
 				
