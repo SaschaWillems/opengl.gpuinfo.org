@@ -1,7 +1,14 @@
 <head>
 	<link rel="stylesheet" href="./libs/jquery-ui/themes/flick/jquery-ui.css">
+	<link rel="stylesheet" href="./libs/bootstrap.min.css">
+	<link rel="stylesheet" href="./libs/dataTables.bootstrap.css">	
+	<link rel="stylesheet" href="./libs/dataTables.searchHighlight.css">	
 	<script src="./libs/jquery.min.js"></script>
 	<script src="./libs/jquery-ui/jquery-ui.min.js"></script>
+	<script src="./libs/jquery.highlight.js"></script>
+	<script src="./libs/jquery.dataTables.min.js"></script>
+	<script src="./libs/dataTables.bootstrap.js"></script>
+	<script src="./libs/dataTables.searchHighlight.min.js"></script>
 	<script>
 		$(function() {
 			$( "#tabs" ).tabs();
@@ -73,14 +80,21 @@
 				echo "<div id='tabs' style='font-size:12px;'>";
 				echo "<ul>";
 				echo "<h2 style='margin-left:10px;'>Comparing OpenGL reports</h2>";
-				echo "<li><a href='#tabs-1'>Implementation</a></li>";
-				echo "<li><a href='#tabs-2'>Extensions</a></li>";
+				echo "	<li><a href='#tabs-1'>Implementation</a></li>";
+				echo "	<li><a href='#tabs-2'>Extensions</a></li>";
 				echo "</ul>";		
 				
 				// Implementation and capabilities
 				echo "<div id='tabs-1'>";
 				echo "<button onclick='toggleDiffCaps();'>Toggle all / diff only</button>";				
-				echo "<table width='95%'>";
+				echo "<table id='caps' width='100%' class='table table-striped table-bordered'>";
+
+				// Table header
+				echo "<thead><tr><td class='caption'>Capability</td>";
+				foreach ($reportids as $reportId) {
+					echo "<td class='caption'>Report $reportId</td>";
+				}
+				echo "</tr></thead><tbody>";
 				
 				$repids = implode(",", $reportids);   
 				$sql       = "SELECT * FROM openglcaps WHERE ReportID IN (" . $repids . ")" ;
@@ -185,14 +199,20 @@
 				echo "No reports to compare...";
 			}
 			
-			echo "</table></div>";	
+			echo "</tbody></table></div>";	
 			
 			
 			// Extensions
 			echo "<div id='tabs-2'>";
 			echo "<button onclick='showDiffOnly();'>Toggle all / diff only</button>";
 			
-			echo "<table width='95%'>";
+			echo "<table id='extensions' width='100%' class='table table-striped table-bordered'>";
+			// Table header
+			echo "<thead><tr><td class='caption'>Extension</td>";
+			foreach ($reportids as $reportId) {
+				echo "<td class='caption'>Report $reportId</td>";
+			}
+			echo "</tr></thead><tbody>";
 			// Gather all extensions supported by at least one of the reports
 			$str = "SELECT DISTINCT Name FROM openglgpuandext LEFT JOIN openglextensions ON openglextensions.PK = openglgpuandext.ExtensionID WHERE openglgpuandext.ReportID IN ($repids)  ORDER BY FIELD(SUBSTR(openglextensions.Name, 1, 3), 'GL_') DESC, FIELD(SUBSTR(openglextensions.Name, INSTR(openglextensions.Name, '_')+1, 3), 'EXT', 'ARB') DESC, openglextensions.Name ASC";	
 			$sqlresult = mysql_query($str); 
@@ -285,20 +305,39 @@
 				$rowindex++;
 				echo "</tr>"; 
 			}	  
-			echo "</table></div>";	
+			echo "</tbody></table></div>";	
 			
 			if ($extDiffOnly) {
 			?>
 			<script>
 				$('.same').hide();
 				$(document).ready(function() {
-					$('#tabs').tabs("option", "active", 1);
+					$('#tabs').tabs("option", "active", 1);				
+					
 				});		
 			</script>
 			<?php
 			}
 			dbDisconnect();
 		include("./gl_footer.inc");	?>
+		
+	<script>
+		$(document).ready(function() {
+			$('#caps').DataTable({
+				"pageLength" : -1,
+				"paging" : false,
+				"order": [], 
+				"searchHighlight": true,
+			});
+			$('#extensions').DataTable({
+				"pageLength" : -1,
+				"order": [], 
+				"searchHighlight": true,
+				"lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ]
+			});
+		} );	
+	</script>
+		
 	</div>
 </body>
 </html>
