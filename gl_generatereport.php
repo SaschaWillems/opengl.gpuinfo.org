@@ -91,7 +91,7 @@
 								}
 								
 								echo "<tr style='background-color:$bgcolor;'><td class='firstrow'>Submitted by</td>";
-								echo "<td class='valuezeroleftdark'><a href='listreports2.php?submitter=$data'>$data</a>$submissionDate</td></tr>";
+								echo "<td class='valuezeroleftdark'><a href='./gl_listreports.php?submitter=$data'>$data</a>$submissionDate</td></tr>";
 								
 								$sqlHistoryResult = mysql_query("SELECT date,submitter from reportHistory where Reportid = $reportID order by Id desc");						
 								$historyCount = mysql_num_rows($sqlHistoryResult);
@@ -100,7 +100,7 @@
 									$index++;
 									$bgcolor  = $index % 2 != 0 ? $bgcolordef : $bgcolorodd; 	  
 									echo "<tr style='background-color:$bgcolor;'><td class='firstrow'>Last update</td>";
-									echo "<td class='valuezeroleftdark'><a href='listreports2.php?submitter=$historyRow[1]'>$historyRow[1]</a> ($historyRow[0])</td></tr>";
+									echo "<td class='valuezeroleftdark'><a href='./gl_listreports.php?submitter=$historyRow[1]'>$historyRow[1]</a> ($historyRow[0])</td></tr>";
 								}
 								
 								//						$index++;
@@ -170,7 +170,7 @@
 			$index = 0;
 			foreach ($extarray as $extension) {
 				$bgcolor  = $index % 2 != 0 ? $bgcolordef : $bgcolorodd; 	   
-				echo "<tr><td class='firstrow' style='background-color:$bgcolor;'><a href='listreports2.php?listreportsbyextension=$extension'>$extension</a></td><tr/>";
+				echo "<tr><td class='firstrow' style='background-color:$bgcolor;'><a href='./gl_listreports.php?listreportsbyextension=$extension'>$extension</a></td><tr/>";
 				$index++;
 			}	
 			echo "</table></div>";

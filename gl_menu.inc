@@ -20,12 +20,12 @@
 <div id='left'>
 	<div id='cssmenu'>
 		<center>
-			<a href='http://delphigl.de/glcapsviewer/listreports2.php?sortby=date_desc'><img src='opengl-logo.gif' width=150px></img></a><br>
+			<a href='http://delphigl.de/glcapsviewer/gl_listreports'><img src='opengl-logo.gif' width=150px></img></a><br>
 			Hardware database
 		</center>
 		<ul>
 		   <li class='active'><a href='#'><span>List</span></a></li>
-			   <li class='has_sub' style="font-size:12px; padding-left:20px;"><a href='./listreports2.php?sortby=date_desc'><span>Reports</span></a></li>
+			   <li class='has_sub' style="font-size:12px; padding-left:20px;"><a href='./gl_listreports?sortby=date_desc'><span>Reports</span></a></li>
 				   <li class='has_sub' style="font-size:12px; padding-left:30px;"><a href='./gl_reports_by_renderer.php'><span>By Renderer</span></a></li>
 				   <li class='has_sub' style="font-size:12px; padding-left:30px;"><a href='./gl_reports_by_version.php'><span>By Version</span></a></li>
 				   <li class='has_sub' style="font-size:12px; padding-left:30px;"><a href='./gl_reports_by_os.php'><span>By OS</span></a></li>
