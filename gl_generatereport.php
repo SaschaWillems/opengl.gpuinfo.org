@@ -192,7 +192,7 @@
 					}
 				}
 				} else {
-				echo "<tr><td>No compressed formats available or submitted</td></tr>";
+				echo "<tr><td class='firstrow'>No compressed formats available or submitted</td></tr>";
 			}	
 			echo "</tbody></table></div>";
 			
@@ -208,7 +208,9 @@
 					echo "<td class='firstrow' >$row[2]</td></tr>";	
 				}		
 				} else {
-				echo "<tr><td>No updates have been made to this report yet</td></tr>";
+				echo "<tr><td class='firstrow' >No updates have been made to this report yet</td>";
+				echo "<td class='firstrow' valign=top>&nbsp;</td>";	
+				echo "<td class='firstrow'>&nbsp;</td></tr>";	
 			}
 			echo "</tbody></table></div>";
 			
