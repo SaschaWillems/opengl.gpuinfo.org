@@ -1,7 +1,14 @@
 <head>
 	<link rel="stylesheet" href="./libs/jquery-ui/themes/flick/jquery-ui.css">
+	<link rel="stylesheet" href="./libs/bootstrap.min.css">
+	<link rel="stylesheet" href="./libs/dataTables.bootstrap.css">	
+	<link rel="stylesheet" href="./libs/dataTables.searchHighlight.css">	
 	<script src="./libs/jquery.min.js"></script>
 	<script src="./libs/jquery-ui/jquery-ui.min.js"></script>
+	<script src="./libs/jquery.highlight.js"></script>
+	<script src="./libs/jquery.dataTables.min.js"></script>
+	<script src="./libs/dataTables.bootstrap.js"></script>
+	<script src="./libs/dataTables.searchHighlight.min.js"></script>
 	<script>
 		$(function() {
 			$( "#tabs" ).tabs();
@@ -55,17 +62,18 @@
 			
 			echo "<div id='tabs' style='font-size:12px;'>";
 			echo "<ul>";
-			echo "<h2 style='margin-left:10px;'>Report for '".$row['GL_RENDERER']."'</h2>";
-			echo "<li><a href='#tabs-1'>Implementation</a></li>";
-			echo "<li><a href='#tabs-2'>Extensions ($extCount)</a></li>";
-			echo "<li><a href='#tabs-3'>Compressed formats ($compressedCount)</a></li>";
-			echo "<li><a href='#tabs-4'>History ($historyCount)</a></li>";
-			echo "<li><a href='#tabs-5'>n/a</a></li>";
+			echo "	<h2 style='margin-left:10px;'>Report for '".$row['GL_RENDERER']."'</h2>";
+			echo "	<li><a href='#tabs-1'>Implementation</a></li>";
+			echo "	<li><a href='#tabs-2'>Extensions ($extCount)</a></li>";
+			echo "	<li><a href='#tabs-3'>Compressed formats ($compressedCount)</a></li>";
+			echo "	<li><a href='#tabs-4'>History ($historyCount)</a></li>";
+			echo "	<li><a href='#tabs-5'>n/a</a></li>";
 			echo "</ul>";
 			
 			// Implementation and capabilities
 			echo "<div id='tabs-1'>";
-			echo "<table width='95%'>";
+			echo "<table id='caps' width='100%' class='table table-striped table-bordered'>";
+			echo "<thead><tr><td class='caption'>Capability</td><td class='caption'>Value</td></tr></thead><tbody>";
 			
 			$sqlresult = mysql_query("SELECT * FROM openglcaps WHERE ReportID = $reportID");
 			$colindex  = 0;    
@@ -77,7 +85,6 @@
 				foreach ($row as $data)
 				{
 					$caption = mysql_field_name($sqlresult, $colindex);		  
-					$bgcolor  = $index % 2 != 0 ? $bgcolordef : $bgcolorodd; 	  
 					
 					if (!is_null($data)) {
 						if ($caption == 'submitter') {
@@ -90,7 +97,7 @@
 									$submissionDate = "";
 								}
 								
-								echo "<tr style='background-color:$bgcolor;'><td class='firstrow'>Submitted by</td>";
+								echo "<tr><td class='firstrow'>Submitted by</td>";
 								echo "<td class='valuezeroleftdark'><a href='./gl_listreports.php?submitter=$data'>$data</a>$submissionDate</td></tr>";
 								
 								$sqlHistoryResult = mysql_query("SELECT date,submitter from reportHistory where Reportid = $reportID order by Id desc");						
@@ -98,8 +105,7 @@
 								$historyRow = mysql_fetch_row($sqlHistoryResult);
 								if ($historyCount > 0) {
 									$index++;
-									$bgcolor  = $index % 2 != 0 ? $bgcolordef : $bgcolorodd; 	  
-									echo "<tr style='background-color:$bgcolor;'><td class='firstrow'>Last update</td>";
+									echo "<tr><td class='firstrow'>Last update</td>";
 									echo "<td class='valuezeroleftdark'><a href='./gl_listreports.php?submitter=$historyRow[1]'>$historyRow[1]</a> ($historyRow[0])</td></tr>";
 								}
 								
@@ -110,7 +116,7 @@
 						}
 						
 						if ($caption == 'os') {
-							echo "<tr style='background-color:$bgcolor;'><td class='firstrow'>Operating system</td>";
+							echo "<tr><td class='firstrow'>Operating system</td>";
 							echo "<td class='valuezeroleftdark'>$data</td></tr>";
 						}
 						
@@ -125,12 +131,12 @@
 							if ($data == "es3") {
 								$contextType = "OpenGL ES 3.0";
 							}
-							echo "<tr style='background-color:$bgcolor;'><td class='firstrow'>Context type</td>";
+							echo "<tr><td class='firstrow'>Context type</td>";
 							echo "<td class='valuezeroleftdark'>$contextType</td></tr>";
 						}
 						
 						if (strpos($caption, 'GL_') !== false) {
-							echo "<tr style='background-color:$bgcolor;'><td class='firstrow'>$caption</td>";
+							echo "<tr><td class='firstrow'>$caption</td>";
 							
 							if ((is_numeric($data) && ($caption!=='GL_SHADING_LANGUAGE_VERSION')) ) {
 								echo "<td class='valuezeroleftdark'>".number_format($data)."</td></tr>";
@@ -152,82 +158,131 @@
 				}
 				
 			}	
-			echo "</table></div>";
+			echo "</tbody></table></div>";
 			
 			
 			// Extensions
 			echo "<div id='tabs-2'>";
-			echo "<table width='95%'>";
+			echo "<table id='extensions' width='100%' class='table table-striped table-bordered'>";
+			echo "<thead><tr><td class='caption'>Extension</td></tr></thead><tbody>";
 			$reportID = $_GET['reportID'];         
 			$str = "SELECT Name FROM openglgpuandext LEFT JOIN openglextensions ON openglextensions.PK = openglgpuandext.ExtensionID WHERE openglgpuandext.ReportID = $reportID ORDER BY FIELD(SUBSTR(openglextensions.Name, 1, 3), 'GL_') DESC, FIELD(SUBSTR(openglextensions.Name, INSTR(openglextensions.Name, '_')+1, 3), 'EXT', 'ARB') DESC, openglextensions.Name ASC";  
 			$sqlresult = mysql_query($str);  
 			$extarray = array();
 			while($row = mysql_fetch_row($sqlresult)) {	
 				foreach ($row as $data) {
-					$extarray[] = $data;
-				}
-			}	 
-			$index = 0;
-			foreach ($extarray as $extension) {
-				$bgcolor  = $index % 2 != 0 ? $bgcolordef : $bgcolorodd; 	   
-				echo "<tr><td class='firstrow' style='background-color:$bgcolor;'><a href='./gl_listreports.php?listreportsbyextension=$extension'>$extension</a></td><tr/>";
-				$index++;
-			}	
-			echo "</table></div>";
+					$extarray[]= $data;
+					echo "<tr><td class='firstrow'><a href='./gl_listreports.php?listreportsbyextension=$data'>$data</a></td></tr>";
+				}	
+			}
+			echo "</tbody></table></div>";
 			
 			// Compressed texture formats
-			echo "<div id='tabs-3'><table width='95%'>";
+			echo "<div id='tabs-3'>";
+			echo "<table id='compressedformats' width='100%' class='table table-striped table-bordered'>";
+			echo "<thead><tr><td class='caption'>Compressed format</td></tr></thead><tbody>";			
 			$reportID = $_GET['reportID'];         
 			$sqlresult = mysql_query("select text from compressedTextureFormats ctf join enumTranslationTable ett on ctf.formatEnum = enum where reportId = $reportID");  
 			$sqlCount = mysql_num_rows($sqlresult);
+			$compFormats = array();
 			if ($sqlCount > 0) {
-				$index = 0;
 				while($row = mysql_fetch_row($sqlresult)) {
 					foreach ($row as $data) {
-						$bgcolor  = $index % 2 != 0 ? $bgcolordef : $bgcolorodd; 	   
-						echo "<tr><td class='firstrow' style='background-color:$bgcolor;'>$data</td><tr/>";
-						$index++;
+						echo "<tr><td class='firstrow'>$data</td></tr>";
 					}
 				}
 				} else {
 				echo "<tr><td>No compressed formats available or submitted</td></tr>";
 			}	
-			echo "</table></div>";
+			echo "</tbody></table></div>";
 			
 			// Report history
-			echo "<div id='tabs-4'><table width='95%'>";
+			echo "<div id='tabs-4'>";
+			echo "<table id='history' width='100%' class='table table-striped table-bordered'>";
+			echo "<thead><tr><td class='caption'>Date</td><td class='caption'>Submitter</td><td class='caption'>Changes</td></tr></thead><tbody>";					
 			if ($historyCount > 0) {	
 				$sqlResult = mysql_query("SELECT date,submitter,log FROM reportHistory where reportId = $reportID order by id desc") or die(mysql_error());  
-				$index = 0;
 				while($row = mysql_fetch_row($sqlResult)) {
-					$bgcolor  = $index % 2 == 0 ? $bgcolordef : $bgcolorodd; 	  
-					echo "<tr style='background-color:$bgcolor;'><td class='firstrow' valign=top>$row[0]</td>";
+					echo "<tr><td class='firstrow' valign=top>$row[0]</td>";
 					echo "<td class='firstrow' valign=top>$row[1]</td>";	
 					echo "<td class='firstrow' >$row[2]</td></tr>";	
-					$index++;
 				}		
 				} else {
 				echo "<tr><td>No updates have been made to this report yet</td></tr>";
 			}
-			echo "</table></div>";
+			echo "</tbody></table></div>";
 			
 			// List of caps not available for this report
-			echo "<div id='tabs-5'><table width='95%'>";
-			echo "<tr><td class='firstrow'>";	
-			echo "<p>";
+			echo "<div id='tabs-5'><table width='100%' id='missing' class='table table-striped table-bordered'>";
+			echo "<thead><tr><td class='caption'>Missing capability</td></tr></thead><tbody>";			
 			if (sizeof($emptyCaps) > 0) {
-				$missingCapsList = implode("<br>", $emptyCaps);  
-				echo "<b>Capabilites not available in this report :</b><br>";
-				echo $missingCapsList;
+				foreach ($emptyCaps as $missingCap) {
+					echo "<tr><td class='firstrow'>$missingCap</td></tr>";
+				}
 			}
-			echo "</table></div>";
-			
-			
+			echo "</tbody></table></div>";
 			
 			dbDisconnect();  
 		?>
 	</div>
 	
-	<?php include("./gl_footer.inc");	?>
+	<script>
+		$(document).ready(function() {
+			$('#caps').DataTable({
+				"pageLength" : -1,
+				"paging" : false,
+				"order": [], 
+				"searchHighlight": true,
+			});
+		} );	
+		</script>
+		
+		<script>
+		$(document).ready(function() {
+			$('#extensions').DataTable({
+				"pageLength" : -1,
+				"order": [], 
+				"searchHighlight": true,
+				"lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ]
+			});
+		} );	
+	</script>
+	
+	<script>
+		$(document).ready(function() {
+			$('#compressedformats').DataTable({
+				"pageLength" : -1,
+				"order": [], 
+				"searchHighlight": true,
+				"lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ]
+			});			
+		} );	
+	</script>
+	
+	<script>
+		$(document).ready(function() {
+			$('#history').DataTable({
+				"pageLength" : -1,
+				"order": [], 
+				"searchHighlight": true,
+				"lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ]
+			});			
+		} );	
+	</script>
+	
+	<script>
+		$(document).ready(function() {
+			$('#missing').DataTable({
+				"pageLength" : -1,
+				"order": [], 
+				"searchHighlight": true,
+				"lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ]
+			});						
+		} );	
+	</script>
+	
+</script>	 	
+
+<?php include("./gl_footer.inc");	?>
 </body>
 </html>
