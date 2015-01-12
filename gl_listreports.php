@@ -147,7 +147,7 @@
 							foreach ($subrow as $data)
 							{
 								$subarray[] = strtolower($data);	  
-							}
+								}
 						}	 		  
 						
 						if ($negate == true) {
@@ -189,6 +189,7 @@
 		$('#reports').DataTable({
 			"order": [[ 6, "desc" ]],
 			"pageLength" : 50,
+			"stateSave": true, 	
 			"searchHighlight": true,
 			"lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ]
 		});

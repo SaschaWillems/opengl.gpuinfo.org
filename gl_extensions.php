@@ -129,7 +129,7 @@
 					$vendor = $extparts[0];
 					$link = str_replace($vendor."_", "", $link);						
 					echo "<tr>";						
-					echo "<td class='firstrow'><a href='listreports2.php?listreportsbyextension=".$extname[$i]."'>".$extname[$i]."</a> (<a href='listreports2.php?listreportsbyextensionunsupported=".$extname[$i]."'>not</a>) [<a href='http://www.opengl.org/registry/specs/$vendor/$link.txt' target='_blank' title='Show specification for this extensions'>?</a>]</td>";
+					echo "<td class='firstrow'><a href='gl_listreports.php?listreportsbyextension=".$extname[$i]."'>".$extname[$i]."</a> (<a href='gl_listreports.php?listreportsbyextensionunsupported=".$extname[$i]."'>not</a>) [<a href='http://www.opengl.org/registry/specs/$vendor/$link.txt' target='_blank' title='Show specification for this extensions'>?</a>]</td>";
 					echo "<td class='firstrow' align=center>".$extcount[$i]."</td>";
 					echo "<td class='firstrow' align=center>".round(($extcount[$i]/$totalnumreports*100), 2)."%</td>";
 					echo "</tr>";	    
@@ -146,7 +146,8 @@
 <script>
 	$(document).ready(function() {
 		$('#extensions').DataTable({
-			"pageLength" : 50,
+			"pageLength" : -1,
+			"stateSave": true, 
 			"searchHighlight" : true,		
 			"lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ]
 		});

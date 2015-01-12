@@ -43,7 +43,12 @@
 	
 	<table border="0" id="caps" class="table table-striped table-bordered" cellspacing="0" width="100%">
 		<caption class='tableheader'>Displaying available OpenGl implementation capabilities </caption>
-		<thead><tr><td class="caption">Capability name</td></tr></thead>
+		<thead>
+			<tr>
+				<td class="caption">Capability name</td>
+				<td class="caption">No. of reports</td>
+			</tr>
+		</thead>
 		
 		<?php		
 			$sqlresult = mysql_query("SELECT * FROM openglcaps WHERE ReportID = 1") or die(mysql_error());  	
@@ -72,7 +77,12 @@
 			}
 			
 			foreach ($glcapnames as $glcapname) {
-				echo "<tr><td class='firstrow'><a href='gl_stats_caps_single.php?listreportsbycap=$glcapname'>$glcapname</a></td></tr>";
+				$sqlResult = mysql_query("SELECT count(*) FROM openglcaps WHERE $glcapname is not null") or die(mysql_error());  	
+				$sqlCount = mysql_result($sqlResult, 0);
+				echo "<tr>";
+				echo "<td class='firstrow'><a href='gl_stats_caps_single.php?listreportsbycap=$glcapname'>$glcapname</a></td>";
+				echo "<td class='firstrow' align='center'>$sqlCount</td>";
+				echo "</tr>";
 			}
 			
 			dbDisconnect();	
@@ -83,7 +93,8 @@
 <script>
 	$(document).ready(function() {
 		$('#caps').DataTable({
-			"pageLength" : 50,
+			"pageLength" : -1,
+			"stateSave": true, 
 			"searchHighlight" : true,		
 			"lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ]
 		});
