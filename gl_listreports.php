@@ -60,8 +60,6 @@
 					echo "<caption class='tableheader'>Reports submitted by <b>$submitter</b></class>";	 
 				}	
 				
-				$sortorder = "ORDER BY reportid desc";
-				$vendorheader = false;
 				$negate = false;
 				$caption = "";
 				
@@ -109,16 +107,14 @@
 				echo "	<td class='caption' align=center><input type='submit' name='compare' value='compare'></td>";
 				echo "</tr></thead><tbody>"; 
 				
-				$str = "SELECT *, date(submissiondate) as reportdate, contextTypeName(contexttype) as ctxType FROM openglcaps $like";	  	   
+				$str = "SELECT *, date(submissiondate) as reportdate, contextTypeName(contexttype) as ctxType FROM openglcaps ORDER BY reportid desc";	  	   
 				
 				if ($submitter != '') {
-					$str = "SELECT *, date(submissiondate) as reportdate, contextTypeName(contexttype) as ctxType FROM openglcaps where submitter = '$submitter' $andlike order by ReportID desc";	  	   
+					$str = "SELECT *, date(submissiondate) as reportdate, contextTypeName(contexttype) as ctxType FROM openglcaps where submitter = '$submitter' order by ReportID desc";	  	   
 				}
 				
 				$sqlresult = mysql_query($str); 
-				
-				$currentvendor  = ""; 
-				
+							
 				while($row = mysql_fetch_object($sqlresult))
 				{
 					$description = trim($row->description);		
