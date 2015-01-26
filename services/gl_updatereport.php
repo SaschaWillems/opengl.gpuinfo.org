@@ -26,13 +26,13 @@
 	// Check for valid file
 	$path='./';
 
-	// Reports are pretty small, so limit file size for upload (128 KByte will be more than enough)
-	$MAX_FILESIZE = 128 * 1024;
+	// Reports are pretty small, so limit file size for upload (Note : internal format query makes for some big files)
+	$MAX_FILESIZE = 1024 * 1024;
 	$file = $_FILES['data']['name'];
 
 	// Check filesize
 	if ($_FILES['data']['size'] > $MAX_FILESIZE)  {
-		echo "File exceeds size limitation of 128 KByte!";    
+		echo "File exceeds size limitation of $MAX_FILESIZE bytes!";    
 		exit();  
 	}
 
@@ -115,6 +115,23 @@
 		$log .= "Inserted compressed texture formats :<br>";
 		$log .= implode("<br>", $formatsInserted);
 	}
+	
+	// Internal format query information
+	// TODO : WIP
+	$xml = simplexml_load_file($path.'update_'.$_FILES['data']['name']);
+	
+	foreach ($xml->internalformatinformation->target as $target) {
+		foreach ($target->format as $format) {
+			$supported = $format['supported'];
+			if ($supported == "true") {
+				$sqlStr = "insert ignore into internalFormatInformation (reportId, target, format, supported) values ($reportId, '".$target['name']."', '".$format['name']."', 1)";
+			} else {
+				$sqlStr = "insert ignore into internalFormatInformation (reportId, target, format, supported) values ($reportId, '".$target['name']."', '".$format['name']."', 0)";				
+			}
+			mysql_query($sqlStr);	
+		}
+	}	
+		
 
 	$msg = "http://delphigl.de/glcapsviewer/gl_generatereport.php?reportID=$reportId\n\nSubmitter : $submitter\n\nLog : $log";
 	mail('webmaster@delphigl.de', 'Report updated', $msg); 
