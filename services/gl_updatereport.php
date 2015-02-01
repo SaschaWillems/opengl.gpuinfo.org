@@ -117,20 +117,40 @@
 	}
 	
 	// Internal format query information
-	// TODO : WIP
 	$xml = simplexml_load_file($path.'update_'.$_FILES['data']['name']);
-	
+
 	foreach ($xml->internalformatinformation->target as $target) {
+		// Insert texture target if not already present
+		$sqlStr = "insert ignore into intFormatTargets (name) values('".$target['name']."')";
+		mysql_query($sqlStr) or die(mysql_error());	
+		// Get id
+		$sqlRes = mysql_query("select id from intFormatTargets where name = '".$target['name']."'");
+		$sqlRow = mysql_fetch_row($sqlRes) or die (mysql_error());
+		$targetId = $sqlRow[0];
+		
+		// Insert target format info
 		foreach ($target->format as $format) {
-			$supported = $format['supported'];
-			if ($supported == "true") {
-				$sqlStr = "insert ignore into internalFormatInformation (reportId, target, format, supported) values ($reportId, '".$target['name']."', '".$format['name']."', 1)";
-			} else {
-				$sqlStr = "insert ignore into internalFormatInformation (reportId, target, format, supported) values ($reportId, '".$target['name']."', '".$format['name']."', 0)";				
+			$supported = ($format['supported'] == "true") ? 1 : 0;
+			$sqlStr  = "insert ignore into intFormats (reportId, targetId, name, supported) values";
+			$sqlStr .= "($reportId, $targetId, '".$format['name']."', '".$supported."')";
+			mysql_query($sqlStr) or die(mysql_error());			
+			// Get id
+			$sqlRes = mysql_query("select formatid from intFormats where reportId = $reportId and targetId = $targetId and name = '".$format['name']."'");
+			$sqlRow = mysql_fetch_row($sqlRes) or die (mysql_error());
+			$formatId = $sqlRow[0];
+			
+			// Insert internal format properties
+			if ($supported == 1) {
+				foreach ($format->value as $value) {
+					$sqlStr  = "insert ignore into intFormatProps (intFormatId, name, value) values";
+					$sqlStr .= "($formatId, '".$value['name']."', ".$value.")";
+					mysql_query($sqlStr) or die(mysql_error());							
+				}
 			}
-			mysql_query($sqlStr);	
+			
 		}
-	}	
+		
+	}
 		
 
 	$msg = "http://delphigl.de/glcapsviewer/gl_generatereport.php?reportID=$reportId\n\nSubmitter : $submitter\n\nLog : $log";
