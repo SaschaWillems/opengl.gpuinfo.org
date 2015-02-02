@@ -66,8 +66,9 @@
 			echo "	<li><a href='#tabs-1'>Implementation</a></li>";
 			echo "	<li><a href='#tabs-2'>Extensions ($extCount)</a></li>";
 			echo "	<li><a href='#tabs-3'>Compressed formats ($compressedCount)</a></li>";
-			echo "	<li><a href='#tabs-4'>History ($historyCount)</a></li>";
-			echo "	<li><a href='#tabs-5'>n/a</a></li>";
+			#echo "	<li><a href='#tabs-4'>Internal format query</a></li>";
+			echo "	<li><a href='#tabs-5'>History ($historyCount)</a></li>";
+			echo "	<li><a href='#tabs-6'>n/a</a></li>";
 			echo "</ul>";
 			
 			// Implementation and capabilities
@@ -196,8 +197,30 @@
 			}	
 			echo "</tbody></table></div>";
 			
-			// Report history
+			// Internal format query
+			// TODO : Data is not yet uploaded to the database
+			/*
 			echo "<div id='tabs-4'>";
+			echo "<table id='interalformatquery' width='100%' class='table table-striped table-bordered'>";
+			echo "<thead><tr><td class='caption'>Internal format query</td></tr></thead><tbody>";			
+			$reportID = $_GET['reportID'];         
+			$sqlresult = mysql_query("select text from compressedTextureFormats ctf join enumTranslationTable ett on ctf.formatEnum = enum where reportId = $reportID");  
+			$sqlCount = mysql_num_rows($sqlresult);
+			$compFormats = array();
+			if ($sqlCount > 0) {
+				while($row = mysql_fetch_row($sqlresult)) {
+					foreach ($row as $data) {
+						echo "<tr><td class='firstrow'>$data</td></tr>";
+					}
+				}
+				} else {
+				echo "<tr><td class='firstrow'>No compressed formats available or submitted</td></tr>";
+			}	
+			echo "</tbody></table></div>";			
+			*/
+			
+			// Report history
+			echo "<div id='tabs-5'>";
 			echo "<table id='history' width='100%' class='table table-striped table-bordered'>";
 			echo "<thead><tr><td class='caption'>Date</td><td class='caption'>Submitter</td><td class='caption'>Changes</td></tr></thead><tbody>";					
 			if ($historyCount > 0) {	
@@ -215,7 +238,7 @@
 			echo "</tbody></table></div>";
 			
 			// List of caps not available for this report
-			echo "<div id='tabs-5'><table width='100%' id='missing' class='table table-striped table-bordered'>";
+			echo "<div id='tabs-6'><table width='100%' id='missing' class='table table-striped table-bordered'>";
 			echo "<thead><tr><td class='caption'>Missing capability</td></tr></thead><tbody>";			
 			if (sizeof($emptyCaps) > 0) {
 				foreach ($emptyCaps as $missingCap) {
