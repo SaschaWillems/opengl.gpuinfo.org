@@ -189,7 +189,7 @@
 			if ($sqlCount > 0) {
 				while($row = mysql_fetch_row($sqlresult)) {
 					foreach ($row as $data) {
-						echo "<tr><td class='firstrow'>$data</td></tr>";
+						echo "<tr><td class='firstrow'><a href='./gl_listreports.php?compressedtextureformat=$data'>$data</a></td></tr>";
 					}
 				}
 				} else {
