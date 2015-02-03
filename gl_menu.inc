@@ -31,6 +31,7 @@
 				   <li class='has_sub' style="font-size:12px; padding-left:30px;"><a href='./gl_reports_by_os.php'><span>By OS</span></a></li>
 			   <li class='active_inset' style="font-size:12px; padding-left:20px;"><a href='./gl_extensions.php'><span>Extensions</span></a></li>
 			   <li class='active_inset' style="font-size:12px; padding-left:20px;"><a href='./gl_stats_caps.php'><span>Capabilities</span></a></li>
+			   <li class='active_inset' style="font-size:12px; padding-left:20px;"><a href='./gl_stats_compressed_formats.php'><span>Compr. formats</span></a></li>
 		   <li class='active'><a href="#"><span>Statistics</span></a></li>
 			   <li class='active_inset' style="font-size:12px; padding-left:20px;"><a href='./gl_stats_versions.php'><span>Version coverage</span></a></li>
 			   <li class='active_inset' style="font-size:12px; padding-left:20px;"><a href='./gl_stats_maxsupportedversions.php'><span>Version support</span></a></li>
