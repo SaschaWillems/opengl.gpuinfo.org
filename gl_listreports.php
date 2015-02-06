@@ -65,7 +65,7 @@
 				
 				$colspan = 7;
 				$searchType = '';
-								
+				
 				// External search (e.g. via statistics page)
 				if($_GET['listreportsbyextension'] != '') {
 					$searchstring  = mysql_real_escape_string(strtolower($_GET['listreportsbyextension']));
@@ -130,7 +130,7 @@
 				}				
 				
 				$sqlresult = mysql_query($str); 
-							
+				
 				while($row = mysql_fetch_object($sqlresult))
 				{
 					$description = trim($row->description);		
@@ -158,7 +158,7 @@
 							foreach ($subrow as $data)
 							{
 								$subarray[] = strtolower($data);	  
-								}
+							}
 						}	 		  
 						
 						if ($negate == true) {
@@ -169,11 +169,11 @@
 							if (!in_array($searchstring, $subarray)) { continue; } 
 						} 
 					}
-										   
+					
 					// Extract version numbers
 					preg_match("|[0-9]+(?:\.[0-9]*)?|", $version, $versionint);	 
 					preg_match("|[0-9]+(?:\.[0-9]*)?|", $glslsversion, $glslsversionint);	 
-
+					
 					echo "<tr>";
 					echo "	<td class='firstrow'><a href='gl_generatereport.php?reportID=$reportid'>$renderer</a></td>";	
 					echo "	<td class='valuezeroleft'>".$version."</td>";	 
@@ -190,24 +190,50 @@
 				dbDisconnect();  
 			?>   
 		</tbody>
-	</table>
+		</table>
+		
+		
+	</form>   
 	
+	<script>
+		$(document).ready(function() {
+			$('#reports').DataTable({
+				"order": [[ 6, "desc" ]],
+				"pageLength" : 50,
+				"stateSave": true, 	
+				"searchHighlight": true,
+				"lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
+				
+				initComplete: function () {
+					var api = this.api();
+					
+					api.columns().indexes().flatten().each( function ( i ) {
+						if ((i>1) && (i<6)) {
+							var column = api.column( i );
+							var select = $('<select><option value=""></option></select>')
+							.appendTo( $(column.header()) )
+							.on( 'change', function () {
+								var val = $.fn.dataTable.util.escapeRegex(
+								$(this).val()
+								);
+								 
+								column
+								.search( val ? '^'+val+'$' : '', true, false )
+								.draw();
+							} );
+							
+							column.data().unique().sort().each( function ( d, j ) {
+								select.append( '<option value="'+d+'">'+d+'</option>' )
+							} );
+						};
+					} );
+				}			
+				
+			});
+		} );	
+	</script>	 
 	
-</form>   
-
-<script>
-	$(document).ready(function() {
-		$('#reports').DataTable({
-			"order": [[ 6, "desc" ]],
-			"pageLength" : 50,
-			"stateSave": true, 	
-			"searchHighlight": true,
-			"lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ]
-		});
-	} );	
-</script>	 
-
-<?php include("./gl_footer.inc");	?>
+	<?php include("./gl_footer.inc");	?>
 </div>
 
 </body>
