@@ -165,13 +165,15 @@
 	
 	// Return message to be display in app	
 	if (sizeof($capsUpdated) > 0) {
-		echo sizeof($capsUpdated), " capabilities have been added. See the report history for details!";
-		echo "\n\nThanks for your contribution!";
+		echo sizeof($capsUpdated), " capabilities have been added.\n\n";
 	};
 	if (sizeof($formatsInserted) > 0) {
-		echo sizeof($formatsInserted), " compressed texture formats have been added to the report. See the report history for details!";
-		echo "\n\nThanks for your contribution!";
+		echo sizeof($formatsInserted), " compressed texture formats have been added to the report.\n\n";
 	};	
+	
+	if ( (sizeof($capsUpdated) > 0) || (sizeof($formatsInserted) > 0) ) {
+		echo "See the report history for details.\n\nThank you for your contribution!";
+	}
 	
 	
 	dbDisconnect();	 
