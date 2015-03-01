@@ -107,7 +107,9 @@
 	foreach ($nodes->item(0)->getElementsByTagName("compressedtextureformat") as $formatNode) {
 		$formatEnum = $formatNode->textContent; 
 		mysql_query("insert ignore into compressedTextureFormats (reportId, formatEnum) values ($reportId, $formatEnum)");
-		$formatsInserted[] = $formatNode->textContent;
+		if (mysql_affected_rows() > 0) {
+			$formatsInserted[] = $formatNode->textContent;
+		}
 	}
 	
 	// Generate history entry
@@ -117,6 +119,7 @@
 	}
 	
 	// Internal format query information
+	/*
 	$xml = simplexml_load_file($path.'update_'.$_FILES['data']['name']);
 
 	foreach ($xml->internalformatinformation->target as $target) {
@@ -151,6 +154,7 @@
 		}
 		
 	}
+	*/
 		
 
 	$msg = "http://delphigl.de/glcapsviewer/gl_generatereport.php?reportID=$reportId\n\nSubmitter : $submitter\n\nLog : $log";
