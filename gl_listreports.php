@@ -113,7 +113,8 @@
 				echo "	<td class='caption'>OS</td>";
 				echo "	<td class='caption'>Date</td>";
 				echo "	<td class='caption' align=center><input type='submit' name='compare' value='compare'></td>";
-				echo "</tr></thead><tbody>";
+				echo "</tr>";
+				echo "</thead><tbody>";
 
 				$str = "SELECT *, date(submissiondate) as reportdate, contextTypeName(contexttype) as ctxType FROM openglcaps ORDER BY reportid desc";
 
@@ -201,17 +202,18 @@
 				"order": [[ 6, "desc" ]],
 				"deferRender": true,
 				"pageLength" : 50,
-				"stateSave": true,
+				"stateSave": false,
 				"searchHighlight": true,
 				"lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
+				"orderCellsTop": true,
 
 				initComplete: function () {
 					var api = this.api();
 
 					api.columns().indexes().flatten().each( function ( i ) {
-						if ((i>1) && (i<6)) {
+						if ((i>1) && (i<6)) {						
 							var column = api.column( i );
-							var select = $('<select><option value=""></option></select>')
+							var select = $('<br/><select onclick="stopPropagation(event);"><option value=""></option></select>')
 							.appendTo( $(column.header()) )
 							.on( 'change', function () {
 								var val = $.fn.dataTable.util.escapeRegex(
@@ -221,7 +223,7 @@
 								column
 								.search( val ? '^'+val+'$' : '', true, false )
 								.draw();
-							} );
+							} );	
 
 							column.data().unique().sort().each( function ( d, j ) {
 								select.append( '<option value="'+d+'">'+d+'</option>' )
@@ -232,6 +234,14 @@
 
 			});
 		} );
+		
+	  function stopPropagation(evt) {
+			if (evt.stopPropagation !== undefined) {
+				evt.stopPropagation();
+			} else {
+				evt.cancelBubble = true;
+			}
+		}		
 	</script>
 
 	<?php include("./gl_footer.inc");	?>
