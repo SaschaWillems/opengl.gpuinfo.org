@@ -20,7 +20,7 @@
 <div id='left'>
 	<div id='cssmenu'>
 		<center>
-			<a href='http://delphigl.de/glcapsviewer/gl_listreports'><img src='opengl-logo.gif' width=150px></img></a><br>
+			<a href='http://opengl.delphigl.de/'><img src='./images/opengl.png' width='150px'></img></a><br>
 			Hardware database
 		</center>
 		<ul>
