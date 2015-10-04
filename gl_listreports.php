@@ -20,7 +20,6 @@
 	*/
 
 	include './gl_htmlheader.inc';
-	//include './gl_menu.inc';
 	include './gl_config.php';
 
 	dbConnect();
@@ -31,15 +30,12 @@
 		echo "<h4 style='margin-left:10px;'>Listing all available reports ($sqlCount)</h4>";
 	echo "</div>";				
 ?>
-
-
-
-
-<div id="content">
+<center>
+	<div class="reportdiv">
 
 	<form method="get" action="gl_comparereports.php?compare" style="margin-bottom:0px;">
 
-		<table  border="0" id="reports" class="table table-striped table-bordered" cellspacing="0" width="100%">
+		<table id="reports" class="table table-striped table-bordered table-hover reporttable">
 			<?php
 
 				// Submitter
@@ -124,12 +120,20 @@
 					$reportid    = trim($row->ReportID);
 					$vendor	  = trim($row->GL_VENDOR);
 					$renderer	  = trim($row->GL_RENDERER);
-					$submissiondate = trim($row->reportdate);
-					$os          = trim($row->os);
+					$submissiondate = "<nobr>".trim($row->reportdate)."</nobr>";
 					$ctxtype = trim($row->ctxType);
-
-					// Remove certain unnecessary strings from version info (e.g. "compatibility context for ATI"
-					$versionreplace = array("Compatibility Profile Context");
+					
+					// Clean up OS name (for all the linux distros out there)
+					$os = $row->os;
+					$os = trim($row->os);
+					if (strpos($os, "Linux") !== false) 
+					{
+						$pos = strpos($os, '-');
+						$os = substr($os, 0, $pos);
+					}			
+					
+					// Remove certain unnecessary strings from version info (e.g. "compatibility context for ATI")
+					$versionreplace = array("Compatibility Profile Context", "Core Profile Forward-Compatible Context", "OpenGL ES");
 					$version = str_replace($versionreplace, "", trim($row->GL_VERSION));
 					$glslsversion = trim($row->GL_SHADING_LANGUAGE_VERSION);
 
@@ -232,6 +236,7 @@
 
 	<?php include("./gl_footer.inc");	?>
 </div>
+</center>
 
 </body>
 </html>
