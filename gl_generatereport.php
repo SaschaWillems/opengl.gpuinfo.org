@@ -40,10 +40,12 @@
 	$sqlresult = mysql_query("SELECT GL_RENDERER FROM openglcaps WHERE ReportID = $reportID");
 	$row = mysql_fetch_array($sqlresult);  
 	
+	// Header =====================================================================================
 	echo "<div class='header'>";
 	echo "<h4 style='margin-left:10px;'>Report for '".$row['GL_RENDERER']."'</h4>";
 	echo "</div>";
 				
+	// Tabs =======================================================================================
 	echo "<div id='tabs' style='font-size:12px;'>";
 	echo "<ul class='nav nav-tabs'>";
 	echo "	<li><a data-toggle='tab' href='#tabs-1'>Implementation</a></li>";
@@ -54,7 +56,7 @@
 	echo "	<li><a data-toggle='tab' href='#tabs-6'>n/a</a></li>";
 	echo "</ul>";
 	
-	// Implementation and capabilities ==============================================================
+	// Implementation and capabilities ============================================================
 	echo "<div id='tabs-1' class='reportdiv'>";
 	echo "<table id='caps' class='table table-striped table-bordered table-hover reporttable'>";
 	echo "<thead><tr><td>Capability</td><td>Value</td></tr></thead><tbody>";

@@ -1,16 +1,3 @@
-<head>
-	<link rel="stylesheet" href="./libs/jquery-ui/themes/flick/jquery-ui.css">
-	<link rel="stylesheet" href="./libs/bootstrap.min.css">
-	<link rel="stylesheet" href="./libs/dataTables.bootstrap.css">	
-	<link rel="stylesheet" href="./libs/dataTables.searchHighlight.css">	
-	<script src="./libs/jquery.min.js"></script>
-	<script src="./libs/jquery-ui/jquery-ui.min.js"></script>
-	<script src="./libs/jquery.highlight.js"></script>
-	<script src="./libs/jquery.dataTables.min.js"></script>
-	<script src="./libs/dataTables.bootstrap.js"></script>
-	<script src="./libs/dataTables.searchHighlight.min.js"></script>
-</head>
-
 <?php 
 	/* 		
 		*
@@ -33,16 +20,19 @@
 	*/
 	
 	include './gl_htmlheader.inc';	
-	include './gl_menu.inc';
 	include './gl_config.php';
 	
 	dbConnect();	 
-?>
-
-<div id="content">
 	
-	<table border="0" id="caps" class="table table-striped table-bordered" cellspacing="0" width="100%">
-		<caption class='tableheader'>Displaying available OpenGl implementation capabilities </caption>
+	$sqlResult = mysql_query("SELECT count(*) FROM openglextensions");
+	$sqlCount = mysql_result($sqlResult, 0);
+	echo "<div class='header'>";
+		echo "<h4 style='margin-left:10px;'>Listing all available capabilities</h4>";
+	echo "</div>";					
+?>
+<center>
+	<div class="reportdiv">
+	<table id="caps" class="table table-striped table-bordered table-hover reporttable">
 		<thead>
 			<tr>
 				<td class="caption">Capability name</td>
@@ -94,13 +84,14 @@
 	$(document).ready(function() {
 		$('#caps').DataTable({
 			"pageLength" : -1,
-			"stateSave": true, 
-			"searchHighlight" : true,		
-			"lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ]
+			"paging" : false,
+			"stateSave": false, 
+			"searchHighlight" : true
 		});
 	} );	
 </script>
 <?php include("./gl_footer.inc");	?>
 </div>
+</center>
 </body>
 </html>

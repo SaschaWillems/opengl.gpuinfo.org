@@ -1,16 +1,3 @@
-<head>
-	<link rel="stylesheet" href="./libs/jquery-ui/themes/flick/jquery-ui.css">
-	<link rel="stylesheet" href="./libs/bootstrap.min.css">
-	<link rel="stylesheet" href="./libs/dataTables.bootstrap.css">	
-	<link rel="stylesheet" href="./libs/dataTables.searchHighlight.css">	
-	<script src="./libs/jquery.min.js"></script>
-	<script src="./libs/jquery-ui/jquery-ui.min.js"></script>
-	<script src="./libs/jquery.highlight.js"></script>
-	<script src="./libs/jquery.dataTables.min.js"></script>
-	<script src="./libs/dataTables.bootstrap.js"></script>
-	<script src="./libs/dataTables.searchHighlight.min.js"></script>
-</head>
-
 <?php 
 	/* 		
 		*
@@ -33,15 +20,21 @@
 	*/
 	
 	include './gl_htmlheader.inc';	
-	include './gl_menu.inc';
 	include './gl_config.php';
 	
 	dbConnect();	
+	
+	$sqlResult = mysql_query("SELECT count(*) FROM openglextensions");
+	$sqlCount = mysql_result($sqlResult, 0);
+	echo "<div class='header'>";
+		echo "<h4 style='margin-left:10px;'>Listing all available extensions ($sqlCount)</h4>";
+	echo "</div>";				
 ?>
 
-<div id="content">
+<center>
 	
-	<table border="0" id="extensions" class="table table-striped table-bordered" cellspacing="0" width="100%">
+	<div class="reportdiv">
+	<table id="extensions" class="table table-striped table-bordered table-hover reporttable" >
 		<?php
 			
 			// Filter via input box
@@ -65,16 +58,8 @@
 			echo "<thead><tr>";  
 			
 			$sortby = $_GET['sortby'];				
-			if ($sortby == "extDesc") {
-				echo "<td class='caption'><b><a href='".$_SERVER['PHP_SELF']."?sortby=extAsc'>Extension</a></b></td>";		   
-				$sortOrder = 'DESC';
-				} else {
-				echo "<td class='caption'><b><a href='".$_SERVER['PHP_SELF']."?sortby=extDesc'>Extension</a></b></td>";		   
-				$sortOrder = 'ASC';
-			}
-			
-			echo "<td class='caption'><b>Count</b></td>";		   
-			echo "<td class='caption'><b><a href='".$_SERVER['PHP_SELF']."?sortby=percentage'>Percentage</a></b></td>";		   
+			echo "<td class='caption'>Extension</td>";		   
+			echo "<td class='caption'>Coverage</td>";		   
 			echo "</tr></thead><tbody>";
 			
 			
@@ -130,7 +115,6 @@
 					$link = str_replace($vendor."_", "", $link);						
 					echo "<tr>";						
 					echo "<td class='firstrow'><a href='gl_listreports.php?listreportsbyextension=".$extname[$i]."'>".$extname[$i]."</a> (<a href='gl_listreports.php?listreportsbyextensionunsupported=".$extname[$i]."'>not</a>) [<a href='http://www.opengl.org/registry/specs/$vendor/$link.txt' target='_blank' title='Show specification for this extensions'>?</a>]</td>";
-					echo "<td class='firstrow' align=center>".$extcount[$i]."</td>";
 					echo "<td class='firstrow' align=center>".round(($extcount[$i]/$totalnumreports*100), 2)."%</td>";
 					echo "</tr>";	    
 					$index++;
@@ -147,14 +131,14 @@
 	$(document).ready(function() {
 		$('#extensions').DataTable({
 			"pageLength" : -1,
-			"stateSave": true, 
-			"searchHighlight" : true,		
-			"lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ]
+			"paging" : false,
+			"stateSave": false, 
+			"searchHighlight" : true
 		});
 	} );	
 </script>
-
-<?php include("./gl_footer.inc");	?></center>	
 </div>
+</center>
+<?php include("./gl_footer.inc");	?></center>	
 </body>
 </html>
