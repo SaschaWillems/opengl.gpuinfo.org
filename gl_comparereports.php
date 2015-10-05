@@ -1,27 +1,11 @@
-<head>
-	<link rel="stylesheet" href="./libs/jquery-ui/themes/flick/jquery-ui.css">
-	<link rel="stylesheet" href="./libs/bootstrap.min.css">
-	<link rel="stylesheet" href="./libs/dataTables.bootstrap.css">	
-	<link rel="stylesheet" href="./libs/dataTables.searchHighlight.css">	
-	<script src="./libs/jquery.min.js"></script>
-	<script src="./libs/jquery-ui/jquery-ui.min.js"></script>
-	<script src="./libs/jquery.highlight.js"></script>
-	<script src="./libs/jquery.dataTables.min.js"></script>
-	<script src="./libs/dataTables.bootstrap.js"></script>
-	<script src="./libs/dataTables.searchHighlight.min.js"></script>
 	<script>
-		$(function() {
-			$( "#tabs" ).tabs();
-		});
 		function showDiffOnly() {
 			$('.same').toggle()
 		}
 		function toggleDiffCaps() {
 			$('.sameCaps').toggle()
-		}
+		}	
 	</script>
-</head>
-<body>
 	<div>
 		<?php
 			/* 		
@@ -45,12 +29,12 @@
 			*/
 			
 			include './gl_htmlheader.inc';	
-			include './gl_menu.inc';
 			include './gl_config.php';
 			
 			dbConnect();	
 			
-			echo "<div id='content'>";
+			echo "<center><div id='reportdiv'>";
+			
 			$extDiffOnly = false;
 			if (isset($_GET['extDiffOnly'])) {
 				$extDiffOnly = true;
@@ -68,6 +52,10 @@
 					}
 				}   
 				
+				echo "<div class='header'>";
+					echo "<h4 style='margin-left:10px;'>Comparing ".count($reportids)." reports</h4>";
+				echo "</div>";					
+				
 				if ($reportlimit) {echo "<b>Note : </b>You selected more than 8 reports to compare, only displaying the first 8 selected reports.\n"; }	
 				
 				sort($reportids, SORT_NUMERIC);
@@ -78,15 +66,14 @@
 				echo "<table width='80%'><tr><td valign=top>"; 
 				
 				echo "<div id='tabs' style='font-size:12px;'>";
-				echo "<ul>";
-				echo "<h2 style='margin-left:10px;'>Comparing OpenGL reports</h2>";
-				echo "	<li><a href='#tabs-1'>Implementation</a></li>";
-				echo "	<li><a href='#tabs-2'>Extensions</a></li>";
+				echo "<ul class='nav nav-tabs'>";
+				echo "	<li class='active'><a data-toggle='tab' href='#tabs-1'>Implementation</a></li>";
+				echo "	<li><a data-toggle='tab' href='#tabs-2'>Extensions</a></li>";
 				echo "</ul>";		
 				
 				// Implementation and capabilities
 				echo "<div id='tabs-1'>";
-				echo "<button onclick='toggleDiffCaps();'>Toggle all / diff only</button>";				
+				echo "<button onclick='toggleDiffCaps();' class='btn btn-default'>Toggle all / diff only</button>";				
 				echo "<table id='caps' width='100%' class='table table-striped table-bordered'>";
 
 				// Table header
@@ -204,7 +191,7 @@
 			
 			// Extensions
 			echo "<div id='tabs-2'>";
-			echo "<button onclick='showDiffOnly();'>Toggle all / diff only</button>";
+			echo "<button onclick='showDiffOnly();' class='btn btn-default'>Toggle all / diff only</button>";
 			
 			echo "<table id='extensions' width='100%' class='table table-striped table-bordered'>";
 			// Table header
