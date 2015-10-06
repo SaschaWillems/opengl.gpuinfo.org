@@ -1,16 +1,3 @@
-<head>
-	<link rel="stylesheet" href="./libs/jquery-ui/themes/flick/jquery-ui.css">
-	<link rel="stylesheet" href="./libs/bootstrap.min.css">
-	<link rel="stylesheet" href="./libs/dataTables.bootstrap.css">	
-	<link rel="stylesheet" href="./libs/dataTables.searchHighlight.css">	
-	<script src="./libs/jquery.min.js"></script>
-	<script src="./libs/jquery-ui/jquery-ui.min.js"></script>
-	<script src="./libs/jquery.highlight.js"></script>
-	<script src="./libs/jquery.dataTables.min.js"></script>
-	<script src="./libs/dataTables.bootstrap.js"></script>
-	<script src="./libs/dataTables.searchHighlight.min.js"></script>
-</head>
-
 <?php 
 	/* 		
 		*
@@ -33,16 +20,20 @@
 	*/
 	
 	include './gl_htmlheader.inc';	
-	include './gl_menu.inc';
 	include './gl_config.php';
 	
 	dbConnect();	 
+    
+	echo "<div class='header'>";
+		echo "<h4 style='margin-left:10px;'>Listing all compressed texture formats</h4>";
+	echo "</div>";	    
 ?>
 
-<div id="content">
+<center>
+<div id="reportdiv">
 	
-	<table border="0" id="formats" class="table table-striped table-bordered" cellspacing="0" width="100%">
-		<caption class='tableheader'>Compressed texture formats<br><i><span style="font-size:small;">Note : Only available starting with glCapsViewer 1.0</span></i></caption>
+	<table id="formats" class="table table-striped table-bordered table-hover reporttable">
+</span></i></caption>
 		<thead>
 			<tr>
 				<td class="caption">Compressed texture format</td>
@@ -77,5 +68,6 @@
 </script>
 <?php include("./gl_footer.inc");	?>
 </div>
+</center>
 </body>
 </html>

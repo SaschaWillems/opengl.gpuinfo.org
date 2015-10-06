@@ -24,12 +24,67 @@
 
 	dbConnect();
 
-	$sqlResult = mysql_query("SELECT count(*) FROM openglcaps");
-	$sqlCount = mysql_result($sqlResult, 0);
+    $negate = false;
+    $searchType = '';    
+    $headeradd = '';
+    
+    // External search (e.g. via statistics page)
+    if($_GET['listreportsbyextension'] != '') {
+        $searchstring  = mysql_real_escape_string(strtolower($_GET['listreportsbyextension']));
+        $searchType = 'extension';
+        $headeradd = 'extension';
+    }
+
+    if($_GET['listreportsbyextensionunsupported'] != '') {
+        $searchstring  = mysql_real_escape_string(strtolower($_GET['listreportsbyextensionunsupported']));
+        $negate = true;
+        $searchType = 'extension';
+        $headeradd = 'extension';
+    }
+
+    if($_GET['compressedtextureformat'] != '') {
+        $searchstring  = mysql_real_escape_string(strtolower($_GET['compressedtextureformat']));
+        $searchType = 'compressedformat';
+        $headeradd = 'format';
+    }
+    
+    // Header
+    $header = '';
+    if($_GET['submitter'] != '') 
+    {
+        $submitter = mysql_real_escape_string(strtolower($_GET['submitter']));
+        $header = "Listing reports submitted by <b>$submitter</b>";
+    }
+    
+    if ($searchstring != '')
+    {
+        $header = "Listing reports ".($negate ? "not" : "")." supporting $headeradd <strong>".strtoupper($searchstring)." </strong>";
+    }   
+ 
+    if ($header == '') 
+    {
+        $sqlResult = mysql_query("SELECT count(*) FROM openglcaps");
+        $sqlCount = mysql_result($sqlResult, 0);
+        $header = "Listing all reports ($sqlCount)";
+    }   
+                
 	echo "<div class='header'>";
-		echo "<h4 style='margin-left:10px;'>Listing all available reports ($sqlCount)</h4>";
+		echo "<h4 style='margin-left:10px;'>$header</h4>";
 	echo "</div>";				
+ 
+    function shorten($string, $length) 
+    {
+        if (strlen($string) >= $length)
+        {
+            return substr($string, 0, $length-10). " ... " . substr($string, -5);
+        }
+        else 
+        {
+            return $string;
+        }
+    }
 ?>
+
 <center>
 	<div class="reportdiv">
 
@@ -37,55 +92,7 @@
 
 		<table id="reports" class="table table-striped table-bordered table-hover reporttable">
 			<?php
-
-				// Submitter
-				if($_GET['submitter'] != '') {
-					$submitter = mysql_real_escape_string(strtolower($_GET['submitter']));
-					echo "<caption class='tableheader'>Reports submitted by <b>$submitter</b></class>";
-				}
-
-				$negate = false;
-				$caption = "";
-
-				$colspan = 7;
-				$searchType = '';
-
-				// External search (e.g. via statistics page)
-				if($_GET['listreportsbyextension'] != '') {
-					$searchstring  = mysql_real_escape_string(strtolower($_GET['listreportsbyextension']));
-					$searchType = 'extension';
-				}
-
-				if($_GET['listreportsbyextensionunsupported'] != '') {
-					$searchstring  = mysql_real_escape_string(strtolower($_GET['listreportsbyextensionunsupported']));
-					$negate = true;
-					$searchType = 'extension';
-				}
-
-				if($_GET['compressedtextureformat'] != '') {
-					$searchstring  = mysql_real_escape_string(strtolower($_GET['compressedtextureformat']));
-					$searchType = 'compressedformat';
-				}
-
-				if ($searchstring != '')
-				{
-					echo "<caption class='tableheader'>";
-					if ($negate == false) {
-						echo "Displaying all reports supporting <b>".strtoupper($searchstring)." </b>";
-					}
-					if ($negate == true) {
-						echo "Displaying all reports not supporting <b>".strtoupper($searchstring)." </b>";
-					}
-					echo "</caption>";
-				}
-
-
-				if (($searchstring == '') and ($submitter == '')) {
-					// echo "<caption class='tableheader'><b>";
-					// quickstats();
-					// echo "</b></class>";
-				}
-				
+	
 				echo "<thead><tr>";
 				echo "	<td class='caption'>Renderer</td>";
 				echo "	<td class='caption'>Version</td>";
@@ -106,7 +113,6 @@
 
 				// Search by compressed texture format support
 				if ( ($searchType == 'compressedformat')  && ($searchstring != '') ) {
-					echo "<b>compressedtextureformat</b>";
 					$str  = "SELECT *, date(submissiondate) as reportdate, contextTypeName(contexttype) as ctxType FROM openglcaps where";
 					$str .= " reportid in (select reportid from compressedTextureFormats where formatEnum =";
 					$str .= " (select enum from enumTranslationTable where text = '$searchstring')) ORDER BY reportid desc";
@@ -117,9 +123,9 @@
 				while($row = mysql_fetch_object($sqlresult))
 				{
 					$description = trim($row->description);
-					$reportid    = trim($row->ReportID);
-					$vendor	  = trim($row->GL_VENDOR);
-					$renderer	  = trim($row->GL_RENDERER);
+					$reportid = trim($row->ReportID);
+					$vendor = trim($row->GL_VENDOR);
+					$renderer = "<nobr>".trim(shorten($row->GL_RENDERER, 30))."</nobr>";
 					$submissiondate = "<nobr>".trim($row->reportdate)."</nobr>";
 					$ctxtype = trim($row->ctxType);
 					
@@ -135,6 +141,7 @@
 					// Remove certain unnecessary strings from version info (e.g. "compatibility context for ATI")
 					$versionreplace = array("Compatibility Profile Context", "Core Profile Forward-Compatible Context", "OpenGL ES");
 					$version = str_replace($versionreplace, "", trim($row->GL_VERSION));
+                    $version = "<nobr>".shorten($version, 30)."</nobr>";
 					$glslsversion = trim($row->GL_SHADING_LANGUAGE_VERSION);
 
 					// Search by extension support

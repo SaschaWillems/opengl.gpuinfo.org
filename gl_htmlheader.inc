@@ -20,6 +20,7 @@
 	</script> 
 </head>
 <body>
+<!-- Header -->
 <!-- Bootstrap nav bar -->
 	<nav class="navbar navbar-default navbar-fixed-top">
 	  <div class="container-fluid">
@@ -38,7 +39,8 @@
 			<li><a href="./gl_listreports?sortby=date_desc">Reports</a></li>
 			<li><a href="./gl_extensions.php">Extensions</a></li> 
 			<li><a href="./gl_stats_caps.php">Capabilities</a></li> 
-			<li><a href="about.php">About</a></li> 
+            <li><a href="./gl_stats_compressed_formats.php">Formats</a></li>
+			<li><a href="./gl_about.php">About</a></li> 
 		  </ul>
 		  <ul class="nav navbar-nav navbar-right">
 			  <li class="dropdown">
@@ -48,6 +50,8 @@
 					<li><a href="http://opengl.gpuinfo.org">OpenGL</a></li>
 					<li><a href="http://opengles.gpuinfo.org">OpenGL ES</a></li>
 					<li><a href="http://vulkan.gpuinfo.org">Vulkan</a></li> 
+                    <li role="separator" class="divider"></li>
+					<li><a href="http://www.gpuinfo.org">Launchpad</a></li> 
 				  </ul>
 			  </li>
 		  </ul>		  

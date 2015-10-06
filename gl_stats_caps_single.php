@@ -1,16 +1,3 @@
-<head>
-	<link rel="stylesheet" href="./libs/jquery-ui/themes/flick/jquery-ui.css">
-	<link rel="stylesheet" href="./libs/bootstrap.min.css">
-	<link rel="stylesheet" href="./libs/dataTables.bootstrap.css">	
-	<link rel="stylesheet" href="./libs/dataTables.searchHighlight.css">	
-	<script src="./libs/jquery.min.js"></script>
-	<script src="./libs/jquery-ui/jquery-ui.min.js"></script>
-	<script src="./libs/jquery.highlight.js"></script>
-	<script src="./libs/jquery.dataTables.min.js"></script>
-	<script src="./libs/dataTables.bootstrap.js"></script>
-	<script src="./libs/dataTables.searchHighlight.min.js"></script>
-</head>
-
 <?php 
 	/* 		
 		*
@@ -33,7 +20,6 @@
 	*/
 	
 	include './gl_htmlheader.inc';	
-	include './gl_menu.inc';
 	include './gl_config.php';
 	
 	dbConnect();	
@@ -118,11 +104,17 @@
 	
 	// Display min / max / avg 
 	$median = median($values);
+    
+	echo "<div class='header'>";
+		echo "<h4 style='margin-left:10px;'>Displaying values for $glcap</h4>";
+        echo "<h5>Lower = $minval / Upper = $maxval / Median = $median</h5>"; 
+	echo "</div>";				    
 	
 ?>  
 
-<div id='content'>
-	<table border="0" id="reports" class="table table-striped table-bordered" cellspacing="0" width="100%">
+<center>
+<div class='reportdiv'>   
+	<table id="reports" class="table table-striped table-bordered table-hover reporttable">
 		
 	<?php  	
 	
@@ -132,9 +124,7 @@
 		echo "<br>Lower = $minval / Upper = $maxval / Median = $median"; 
 		echo "</tr>";
 		*/
-		
-		echo "<caption class='tableheader'>Displaying values for $glcap </caption>";
-		
+			
 		echo "<thead><tr>";  
 		echo "<td class='caption'>Renderer</td>";		   
 		echo "<td class='caption'>Value</td>";		   
@@ -160,11 +150,13 @@
 			"searchHighlight" : true,		
 			"order": [[ 1, "desc" ]],
 			"lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ]
+//            "sDom": '<l<"centered"f><"floatleft"p>>rt'
 		});
 	} );	
 </script>	
 	
 	<?php include("./gl_footer.inc");	?>
 </div>
+</center>
 </body>
 </html>
