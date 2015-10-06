@@ -120,7 +120,7 @@
 				}
 				
 				if (strpos($caption, 'GL_') !== false) {
-					echo "<tr><td class='firstrow'>$caption</td>";
+					echo "<tr><td class='firstrow'><a href='./gl_stats_caps_single.php?listreportsbycap=$caption'>$caption</a></td>";
 					
 					if ((is_numeric($data) && ($caption!=='GL_SHADING_LANGUAGE_VERSION')) ) {
 						echo "<td class='valuezeroleftdark'>".number_format($data)."</td></tr>";
