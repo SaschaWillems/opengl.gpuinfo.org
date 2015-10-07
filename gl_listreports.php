@@ -128,6 +128,8 @@
 					$renderer = "<nobr>".trim(shorten($row->GL_RENDERER, 30))."</nobr>";
 					$submissiondate = "<nobr>".trim($row->reportdate)."</nobr>";
 					$ctxtype = trim($row->ctxType);
+					if (strpos($ctxtype, "OpenGL ES") !== false) 
+						$ctxtype = "OpenGL ES";
 					
 					// Clean up OS name (for all the linux distros out there)
 					$os = $row->os;
