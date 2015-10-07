@@ -24,8 +24,10 @@
 	
 	dbConnect();	 
     
+	$sqlResult = mysql_query("select count(distinct(formatEnum)) from compressedTextureFormats") or die(mysql_error());
+	$sqlCount = mysql_result($sqlResult, 0);    ;
 	echo "<div class='header'>";
-		echo "<h4 style='margin-left:10px;'>Listing all compressed texture formats</h4>";
+		echo "<h4 style='margin-left:10px;'>Listing all compressed texture formats ($sqlCount)</h4>";
 	echo "</div>";	    
 ?>
 
@@ -37,17 +39,17 @@
 		<thead>
 			<tr>
 				<td class="caption">Compressed texture format</td>
-				<td class="caption">No. of reports</td>
+				<td class="caption">Coverage</td>
 			</tr>
 		</thead>
 		
 		<?php		
-			$sqlresult = mysql_query("select text, enum, (select count(distinct reportId) from compressedTextureFormats where formatEnum = enum) from enumTranslationTable where enum in (select distinct(formatEnum) from compressedTextureFormats)") or die(mysql_error());  			
+			$sqlresult = mysql_query("select * from viewCompressedFormats") or die(mysql_error());  			
 			while($row = mysql_fetch_row($sqlresult))
 			{
 				echo "<tr>";
 				echo "	<td class='firstrow'><a href='gl_listreports.php?compressedtextureformat=$row[0]'>$row[0]</a></td>";
-				echo "	<td class='firstrow' align='center'>$row[2]</td>";
+				echo "  <td class='firstrow' align=center>".round(($row[1]), 2)."%</td>";
 				echo "</tr>";
 			}
 			
