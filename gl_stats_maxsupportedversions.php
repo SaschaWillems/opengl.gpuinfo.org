@@ -1,21 +1,4 @@
-<head>
-	<link rel="stylesheet" href="./libs/jquery-ui/themes/flick/jquery-ui.css">
-	<link rel="stylesheet" href="./libs/bootstrap.min.css">
-	<link rel="stylesheet" href="./libs/dataTables.bootstrap.css">	
-	<link rel="stylesheet" href="./libs/dataTables.searchHighlight.css">	
-	<script src="./libs/jquery.min.js"></script>
-	<script src="./libs/jquery-ui/jquery-ui.min.js"></script>
-	<script src="./libs/jquery.highlight.js"></script>
-	<script src="./libs/jquery.dataTables.min.js"></script>
-	<script src="./libs/dataTables.bootstrap.js"></script>
-	<script src="./libs/dataTables.searchHighlight.min.js"></script>
-	<script>
-		$(function() {
-			$( "#tabs" ).tabs();
-		});
-	</script>
-</head>
-<?php
+<?php 
 	/* 		
 		*
 		* OpenGL hardware capability database server implementation
@@ -37,67 +20,46 @@
 	*/
 	
 	include './gl_htmlheader.inc';	
-	include './gl_menu.inc';
 	include './gl_config.php';
 	
-	dbConnect();	  
+	dbConnect();	 
+    
+	$sqlResult = mysql_query("select count(distinct(formatEnum)) from compressedTextureFormats") or die(mysql_error());
+	$sqlCount = mysql_result($sqlResult, 0);    ;
+	echo "<div class='header'>";
+		echo "<h4 style='margin-left:10px;'>Maximum supported OpenGL versions per device</h4>";
+	echo "</div>";	    
 ?>
 
-<div id="content">
-	
+<center>
+<div id="reportdiv">
 	
 	<form method="get" action="gl_comparereports.php?compare" style="margin-bottom:0px;">	
 		
-		<table border="0" id="reports" class="table table-striped table-bordered" cellspacing="0" width="100%">
+	<table id="reports" class="table table-striped table-bordered table-hover reporttable">
 			<?php
-				$params = '';
-				if (isset($_GET['searchstring'])) {
-					$params = '&searchstring='.$_GET['searchstring'];
-				}
-				$sortby = $_GET['sortby'];
-				
-				$sortorder = "ORDER BY name ASC";
-				$caption = "";
-				
-				$colspan = 5;
 								
-				echo "<caption class='tableheader'>Displaying maximum supported OpenGL versions per device</caption>";
+				echo "<caption class='tableheader'></caption>";
 				echo "<thead><tr>";
 				echo "	<td class='caption'>Device</td>";				
 				echo "	<td class='caption'>Version</td>";				
-				echo "	<td class='caption'>Version string</td>";
 				echo "	<td align='center'><input type='submit' name='compare' value='compare'></td>\n";
 				echo "</tr></thead><tbody>"; 
 				
-				$str = "select GL_RENDERER as name, max(trim(left(GL_VERSION,3))) as maxversion, max(GL_VERSION) as glversion, max(reportid) as repid from openglcaps group by name $sortorder";	  	   
-				
-				$sqlresult = mysql_query($str); 
-				
-				$currentvendor  = ""; 
-				
-				$index       = 0;
+				$str = "select * from viewDeviceMaxVersions";	  	   			
+				$sqlresult = mysql_query($str) or die(mysql_error()); 				
 				
 				while($row = mysql_fetch_object($sqlresult))
 				{
-					$name         = trim($row->name);
-					$version      = $row->maxversion;
-					$glversion    = $row->glversion;
-					$reportid     = trim($row->repid);	 
-					$renderer	   = trim($row->GL_RENDERER);
-					$glslsversion = trim($row->GL_SHADING_LANGUAGE_VERSION); 
-					
-					
-					echo "<tr>";
-					$bgcolor = $index % 2 != 0 ? $bgcolordef : $bgcolorodd; 
-					
-					echo "<td class='firstrow' style='background-color:".$bgcolor.";'><a href='gl_generatereport.php?reportID=$reportid'>$name</a></td>";		 
-					echo "<td class='valuezeroleftblack' style='background-color:".$bgcolor.";'>$version</td>\n";
-					echo "<td class='valuezeroleft' style='background-color:".$bgcolor.";'>$glversion</td>\n";		 
-					echo "<td align='center' style='font-size: 12px; background-color:".$bgcolor."'><input type='checkbox' name='id[$reportid]'></td>\n";				
-					
-					echo "</tr>\n";
-					$index++;
-					
+					$name = trim($row->name);
+					$version = $row->maxversion;
+					$reportid = trim($row->repid);	 
+									
+					echo "<tr>";				
+					echo "	<td class='firstrow'><a href='gl_generatereport.php?reportID=$reportid'>$name</a></td>";		 
+					echo "	<td class='valuezeroleftblack'>$version</td>";
+					echo "	<td align='center'><input type='checkbox' name='id[$reportid]'></td>";				
+					echo "</tr>";					
 				}
 				
 				dbDisconnect();  
@@ -111,8 +73,35 @@
 			$('#reports').DataTable({
 				"pageLength" : 50,
 				"searchHighlight": true,
-				"lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ]			
+				"lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
+				
+				initComplete: function () {
+					var api = this.api();
+
+					api.columns().indexes().flatten().each( function ( i ) {
+						if (i == 1) {						
+							var column = api.column( i );
+							var select = $('<br/><select onclick="stopPropagation(event);"><option value=""></option></select>')
+							.appendTo( $(column.header()) )
+							.on( 'change', function () {
+								var val = $.fn.dataTable.util.escapeRegex(
+								$(this).val()
+								);
+
+								column
+								.search( val ? '^'+val+'$' : '', true, false )
+								.draw();
+							} );	
+
+							column.data().unique().sort().each( function ( d, j ) {
+								select.append( '<option value="'+d+'">'+d+'</option>' )
+							} );
+						};
+					} );
+				}				
+				
 			});
+			
 		} );	
 	</script>	
 	
