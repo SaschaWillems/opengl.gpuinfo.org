@@ -35,7 +35,7 @@
 <div id="reportdiv">
 	
 	<table id="formats" class="table table-striped table-bordered table-hover reporttable">
-</span></i></caption>
+
 		<thead>
 			<tr>
 				<td class="caption">Compressed texture format</td>
