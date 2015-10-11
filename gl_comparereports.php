@@ -40,6 +40,13 @@
 				$extDiffOnly = true;
 			}
 			
+			// Use url parameter to enable diff only display
+			$diff = false;
+			if (isset($_GET['diff'])) 
+			{
+				$diff = ($_GET['diff'] == 1);
+			}
+			
 			if (isset($_GET['compare'])) {
 				$reportids = array();
 				$reportlimit = false;
@@ -67,12 +74,13 @@
 				
 				echo "<div id='tabs' style='font-size:12px;'>";
 				echo "<ul class='nav nav-tabs'>";
-				echo "	<li class='active'><a data-toggle='tab' href='#tabs-1'>Implementation</a></li>";
-				echo "	<li><a data-toggle='tab' href='#tabs-2'>Extensions</a></li>";
+				echo "	<li class='active'><a data-toggle='tab' href='#tab-implementation'>Implementation</a></li>";
+				echo "	<li><a data-toggle='tab' href='#tab-extensions'>Extensions</a></li>";
+				echo "	<li><a data-toggle='tab' href='#tab-compressed'>Compressed formats</a></li>";
 				echo "</ul>";		
 				
 				// Implementation and capabilities
-				echo "<div id='tabs-1'>";
+				echo "<div id='tab-implementation'>";
 				echo "<button onclick='toggleDiffCaps();' class='btn btn-default'>Toggle all / diff only</button>";				
 				echo "<table id='caps' width='100%' class='table table-striped table-bordered'>";
 
@@ -190,9 +198,8 @@
 			
 			
 			// Extensions
-			echo "<div id='tabs-2'>";
-			echo "<button onclick='showDiffOnly();' class='btn btn-default'>Toggle all / diff only</button>";
-			
+			echo "<div id='tab-extensions'>";
+			echo "<button onclick='showDiffOnly();' class='btn btn-default'>Toggle all / diff only</button>";			
 			echo "<table id='extensions' width='100%' class='table table-striped table-bordered'>";
 			// Table header
 			echo "<thead><tr><td class='caption'>Extension</td>";
@@ -294,17 +301,154 @@
 			}	  
 			echo "</tbody></table></div>";	
 			
-			if ($extDiffOnly) {
-			?>
-			<script>
-				$('.same').hide();
-				$(document).ready(function() {
-					$('#tabs').tabs("option", "active", 1);				
-					
-				});		
-			</script>
-			<?php
+			if ($extDiffOnly) 
+			{
+				?>
+				<script>
+					$('.same').hide();
+					$(document).ready(function() {
+						$('#tabs').tabs("option", "active", 1);				
+						
+					});		
+				</script>
+				<?php
 			}
+			
+			// Compressed formats
+			echo "<div id='tab-compressed'>";
+			echo "<button onclick='showDiffOnly();' class='btn btn-default'>Toggle all / diff only</button>";
+			
+			echo "<table id='compressedformats' width='100%' class='table table-striped table-bordered'>";
+			// Table header
+			echo "<thead><tr><td class='caption'>Compressed format</td>";
+			foreach ($reportids as $reportId) {
+				echo "<td class='caption'>Report $reportId</td>";
+			}
+			echo "</tr></thead><tbody>";
+			// Gather all compressed formats supported by at least one of the reports
+			$str = "SELECT 
+				DISTINCT text FROM compressedTextureFormats ctf LEFT JOIN enumTranslationTable ett ON ctf.formatEnum = ett.enum
+			WHERE 
+				ctf.ReportID IN ($repids)  
+			ORDER 
+				BY text ASC";	
+			$sqlresult = mysql_query($str); 
+			$formatcaptions = array();
+			
+			while($row = mysql_fetch_row($sqlresult)) 
+			{	
+				foreach ($row as $data) 
+				{
+					$formatcaptions[] = $data;	  
+				}
+			}			
+			// Get compressed formats for each selected report into an array 
+			$formatarray = array(); 
+			
+			foreach ($reportids as $repid) 
+			{
+				$str = "
+				SELECT 
+					DISTINCT text FROM compressedTextureFormats ctf LEFT JOIN enumTranslationTable ett ON ctf.formatEnum = ett.enum
+				WHERE 
+					ctf.ReportID = $repid";			
+				$sqlresult = mysql_query($str); 
+				$subarray = array();
+				while($row = mysql_fetch_row($sqlresult)) 
+				{	
+					foreach ($row as $data) 
+					{
+						$subarray[] = $data;	  
+					}
+				}
+				$formatarray[] = $subarray; 
+			}
+			
+			// Generate table
+			$colspan = count($reportids) + 1;	
+			
+			// Implementation info 
+			$headerFields = array("GL_VENDOR", "GL_RENDERER", "GL_VERSION");
+			$rowindex = 1;
+			foreach ($headerFields as $headerField) 
+			{
+				echo "<tr class='firstrow'>";		
+				echo "<td class='firstrow'>$headerField</td>";		 
+				foreach ($reportids as $repid) 
+				{
+					$sqlresult = mysql_query("SELECT $headerField FROM openglcaps WHERE ReportID = $repid"); 
+					$sqlrow = mysql_fetch_row($sqlresult);
+					echo "<td class='valuezeroleftblack'><b>$sqlrow[0]</b></td>";
+				}	
+				echo "</tr>";
+				$rowindex++;
+			}		
+			
+			// Format count 	
+			echo "<tr class='firstrow'><td class='firstrow'>Format count</td>"; 
+			for ($i = 0, $arrsize = sizeof($formatarray); $i < $arrsize; ++$i) 
+			{ 	  
+				echo "<td class='valuezeroleftdark'>".count($formatarray[$i])."</td>";
+			}
+			echo "</tr>"; 		
+			$rowindex++;
+			
+			foreach ($formatcaptions as $format)
+			{
+				// Check if missing it at least one report
+				$missing = false;
+				$index = 0;
+				foreach ($reportids as $repid) {
+					if (!in_array($format, $formatarray[$index])) { 
+						$missing = true;
+					}
+					$index++;
+				}  			
+				
+				$add = ($missing) ? 'color:#FF0000;' : '';
+				$className = "same";
+				$index = 0;
+				foreach ($reportids as $repid) {
+					if (!in_array($format, $formatarray[$index])) 
+					{ 
+						$className = "diff";
+					}
+					$index++;
+				}
+				echo "<tr style='background-color:$bgcolor;$add' class='$className'><td class='firstrow'>$format</td>\n";		 
+				$index = 0;
+				foreach ($reportids as $repid) 
+				{
+					if (in_array($format, $formatarray[$index])) 
+					{ 
+						echo "<td class='valuezeroleftdark'><img src='icon_check.png' width=16px></td>";
+					} 
+					else 
+					{
+						echo "<td class='valuezeroleftdark'><img src='icon_missing.png' width=16px></td>";
+					}	
+					$index++;
+				}  
+				$rowindex++;
+				echo "</tr>"; 
+			}	  
+			echo "</tbody></table></div>";	
+			
+			if ($diff) 
+			{
+				?>
+				<script>
+					$('.same').hide();
+					$(document).ready(function() {
+						$('#tabs').tabs("option", "active", 1);				
+						
+					});		
+				</script>
+				<?php
+			}
+
+			
+			
 			dbDisconnect();
 		include("./gl_footer.inc");	?>
 		
@@ -322,6 +466,12 @@
 				"searchHighlight": true,
 				"lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ]
 			});
+			$('#compressedformats').DataTable({
+				"pageLength" : -1,
+				"order": [], 
+				"searchHighlight": true,
+				"lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ]
+			});			
 		} );	
 	</script>
 		
