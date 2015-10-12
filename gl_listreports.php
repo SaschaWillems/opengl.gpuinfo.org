@@ -58,7 +58,7 @@
     
     if ($searchstring != '')
     {
-        $header = "Listing reports ".($negate ? "not" : "")." supporting $headeradd <strong>".strtoupper($searchstring)." </strong>";
+        $header = "Listing reports ".($negate ? "<font color=red>not</font>" : "")." supporting $headeradd <strong>".strtoupper($searchstring)." </strong>";
     }   
  
     if ($header == '') 
