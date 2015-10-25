@@ -33,13 +33,16 @@
 	echo "<implementation>";	
 	$skipfields = array("ReportID", "description", "appversion", "fileversion", "submitter", "extensions", "submissiondate", "note", "contexttype", "os");
 	$colindex  = 0;    
-	while($row = mysql_fetch_row($sqlresult)) {
-		foreach ($row as $data) {
+	while($row = mysql_fetch_row($sqlresult))
+	{
+		foreach ($row as $data) 
+		{
 			$fieldname = mysql_field_name($sqlresult, $colindex);		  
 			$fieldvalue = trim($data);
 			// Skip fields that are not supposed to be shwon in glCapsViewer
-			if (!in_array($fieldname, $skipfields)) {
-				echo "<$fieldname>$fieldvalue</$fieldname>";
+			if (!in_array($fieldname, $skipfields)) 
+			{
+				echo "<cap id=\"$fieldname\">$fieldvalue</cap>";
 			}
 			$colindex++;
 		}

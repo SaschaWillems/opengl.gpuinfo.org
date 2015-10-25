@@ -35,25 +35,35 @@
 	
 	// Check file extension 
 	$ext = pathinfo($_FILES['data']['name'], PATHINFO_EXTENSION); 
-	if ($ext != 'xml') {
+	if ($ext != 'xml') 
+	{
 		echo "Report '$file' is not a of file type XML!";    
 		exit();  
 	} 
 	
 	move_uploaded_file($_FILES['data']['tmp_name'], $path.$_FILES['data']['name']) or die(''); 
 	
-	// Connect to DB 
-	include './../gl_config.php';
-	
-	dbConnect();		
-	
 	// Try to parse XML into database
 	$dom = new DomDocument();
 	$dom->load($path.$_FILES['data']['name']); 		   
 	
 	$nodes = $dom->getElementsByTagName('implementationinfo'); 
-	$xmlnode   = $nodes->item(0)->getElementsByTagName("description"); 
+	$xmlnode = $nodes->item(0)->getElementsByTagName("description"); 
 	$description = $xmlnode->item(0)->textContent; 
+
+	// Check required file version
+	$xmlnode = $nodes->item(0)->getElementsByTagName("fileversion"); 
+	$fileversion = str_replace(".", "", $xmlnode->item(0)->textContent);
+	
+	if ($fileversion < 30) 
+	{
+		echo "Report version outdated, please use a recent version of the OpenGL hardware capabilitiy viewer!";    
+		exit();  
+	}
+	
+	// Connect to DB 
+	include './../gl_config.php';
+	dbConnect();			
 	
 	// * Check if report already exists in database first
 	$sqlstr = "SELECT * FROM openglcaps WHERE description = '$description'";
@@ -71,9 +81,10 @@
 	//  Gather caps
 	$xmlnode = $nodes->item(0)->getElementsByTagName('caps'); 
 	$caparray = array();
-	foreach ($xmlnode->item(0)->childNodes as $capnode) {
+	foreach ($xmlnode->item(0)->childNodes as $capnode) 
+	{
 		if ($capnode->nodeName == "#text") {continue;} 	  
-		$caparray[] = $capnode->nodeName;
+		$caparray[] = "`".$capnode->getAttribute("id")."`";
 	}
 	
 	$selectionstr .= implode(", ", $caparray) .")"; 
@@ -105,11 +116,15 @@
 	// Gather caps
 	$xmlnode = $nodes->item(0)->getElementsByTagName("caps"); 
 	$caparray = array();
-	foreach ($xmlnode->item(0)->childNodes as $capnode) {
+	foreach ($xmlnode->item(0)->childNodes as $capnode) 
+	{
 		if ($capnode->nodeName == "#text") {continue;} 	  
-		if ($capnode->nodeValue == "n/a") {
+		if ($capnode->nodeValue == "n/a") 
+		{
 			$caparray[] = 'NULL';
-			} else {
+		} 
+		else 
+		{
 			$caparray[] = '"'.trim($capnode->nodeValue).'"';
 		}
 	}
@@ -117,7 +132,7 @@
 	$valuestr = str_replace("\"n/a\"", "NULL", $valuestr);
 	$sql = $selectionstr ." ". $valuestr;
 	
-	$sqlresult = mysql_query($sql);
+	$sqlresult = mysql_query($sql) or die(mysql_error());
 	
 	// Extension names into separate DB
 	$xmlnode = $nodes->item(0)->getElementsByTagName("extension"); 
@@ -128,11 +143,11 @@
 	}
 	
 	$sqlstr = "INSERT IGNORE INTO openglextensions (Name) VALUES " .implode(", ", $extarray);
-	$sqlresult = mysql_query($sqlstr);
+	$sqlresult = mysql_query($sqlstr) or die(mysql_error());
 	
 	// Put supported extensions into third table
 	$sqlstr = "SELECT ReportID FROM openglcaps WHERE description='$description'";   
-	$sqlresult = mysql_query($sqlstr);
+	$sqlresult = mysql_query($sqlstr) or die(mysql_error());
 	
 	$sqlrow = mysql_fetch_assoc($sqlresult);
 	$reportID = $sqlrow["ReportID"];
@@ -145,12 +160,12 @@
 	}
 	
 	$sqlstr = "INSERT INTO openglgpuandext SELECT $reportID AS ReportID, PK AS ExtensionID FROM openglextensions WHERE Name IN (".implode(", ", $extarray).")"; 
-	$sqlresult = mysql_query($sqlstr); 
+	$sqlresult = mysql_query($sqlstr) or die(mysql_error()); 
 	
 	// Compressed texture formats
 	foreach ($nodes->item(0)->getElementsByTagName("compressedtextureformat") as $formatNode) {
 		$formatEnum = $formatNode->textContent; 
-		mysql_query("insert ignore into compressedTextureFormats (reportId, formatEnum) values ($reportID, $formatEnum)");
+		mysql_query("insert ignore into compressedTextureFormats (reportId, formatEnum) values ($reportID, $formatEnum)") or die(mysql_error());
 	}	
 	
 	echo "res_uploaded";	  

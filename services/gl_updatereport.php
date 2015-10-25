@@ -60,10 +60,11 @@
 	$sqlRow = mysql_fetch_row($sqlResult);
 	$reportId = $sqlRow[0];	
 	
-	if ($reportId == "") {
+	if ($reportId == "") 
+	{
 		echo "No report to update! Wrong Id?";
 		mysql_close();	 
-		die('');
+		die();
 	}
 		
 	$submitter = $nodes->item(0)->getElementsByTagName("submitter")->item(0)->textContent;
@@ -74,40 +75,51 @@
 	$xmlnode = $nodes->item(0)->getElementsByTagName('caps'); 
 	$capsUpdated = array();
 	$capsNewValue = array();
-	foreach ($xmlnode->item(0)->childNodes as $capnode) {	
-		if (strpos($capnode->nodeName, 'GL_') !== false) {
+	foreach ($xmlnode->item(0)->childNodes as $capnode) 
+	{	
+		if ($capnode->nodeName == "#text") {continue;} 	  
+		$capid = $capnode->getAttribute("id");
+		$capvalue = $capnode->nodeValue;
+		if (strpos($capid, 'GL_') !== false) 
+		{
 			// Only null values
-			$sqlResultCap = mysql_query("SELECT ".$capnode->nodeName." FROM openglcaps WHERE reportID = $reportId");
+			$sqlResultCap = mysql_query("SELECT `".$capid."` FROM openglcaps WHERE reportID = $reportId") or die(mysql_error());
 			$sqlRow = mysql_fetch_row($sqlResultCap);
-			if ((is_null($sqlRow[0])) && (strpos($capnode->nodeValue, 'n/a') == false)) {
-				$capsUpdated[] = $capnode->nodeName;
-				$capsNewValue[] = trim($capnode->nodeValue);
+			if ((is_null($sqlRow[0])) && (strpos($capvalue, 'n/a') == false)) 
+			{
+				$capsUpdated[] = $capid;
+				$capsNewValue[] = trim($capvalue);
 			}
 		}
 	}	
 	
 	// Updated
-	for ($i=0; $i<sizeof($capsUpdated); $i++) {
+	for ($i=0; $i<sizeof($capsUpdated); $i++) 
+	{
 		$capName = $capsUpdated[$i];
 		$capValue = $capsNewValue[$i]; 
-		$sqlStr = "UPDATE openglcaps SET $capName = '$capValue' WHERE reportId = $reportId";
+		$sqlStr = "UPDATE openglcaps SET `$capName` = '$capValue' WHERE reportId = $reportId";
 		$sqlResult = mysql_query($sqlStr) or die(mysql_error()); 
 	}
 	
 	// Generate history entry
-	if (sizeof($capsUpdated) > 0) {
+	if (sizeof($capsUpdated) > 0) 
+	{
 		$log = "Updated fields :<br>";
-		for ($i=0; $i<sizeof($capsUpdated); $i++) {
+		for ($i=0; $i<sizeof($capsUpdated); $i++) 
+		{
 			$log .= $capsUpdated[$i] . " = " . $capsNewValue[$i] . "<br>";
 		}
 	}
 	
 	// Compressed texture format
 	$formatsInserted = array();
-	foreach ($nodes->item(0)->getElementsByTagName("compressedtextureformat") as $formatNode) {
+	foreach ($nodes->item(0)->getElementsByTagName("compressedtextureformat") as $formatNode) 
+	{
 		$formatEnum = $formatNode->textContent; 
-		mysql_query("insert ignore into compressedTextureFormats (reportId, formatEnum) values ($reportId, $formatEnum)");
-		if (mysql_affected_rows() > 0) {
+		mysql_query("insert ignore into compressedTextureFormats (reportId, formatEnum) values ($reportId, $formatEnum)") or die(mysql_error());
+		if (mysql_affected_rows() > 0) 
+		{
 			$formatsInserted[] = $formatNode->textContent;
 		}
 	}
@@ -157,11 +169,11 @@
 	*/
 		
 
-	$msg = "http://delphigl.de/glcapsviewer/gl_generatereport.php?reportID=$reportId\n\nSubmitter : $submitter\n\nLog : $log";
+	$msg = "http://www.gpuinfo.org/gl_generatereport.php?reportID=$reportId\n\nSubmitter : $submitter\n\nLog : $log";
 	mail('webmaster@delphigl.de', 'Report updated', $msg); 
 	
 	$sqlStr = "INSERT INTO reportHistory (reportId, submitter, log) VALUES($reportId, '$submitter', '$log');";
-	$sqlResult = mysql_query($sqlStr);	
+	$sqlResult = mysql_query($sqlStr) or die(mysql_error());	
 	
 	// Return message to be display in app	
 	if (sizeof($capsUpdated) > 0) {
