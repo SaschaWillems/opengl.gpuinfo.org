@@ -130,8 +130,9 @@
 		echo "<td class='caption'>Value</td>";		   
 		echo "</tr></thead>";	
 		
-		$sqlresult = mysql_query("SELECT * FROM openglcaps WHERE ".$glcap." is not null ORDER BY `".$glcap."` DESC") or die(mysql_error());  
-		while($row = mysql_fetch_object($sqlresult)) {
+		$sqlresult = mysql_query("SELECT * FROM openglcaps WHERE `".$glcap."` is not null ORDER BY `".$glcap."` DESC") or die(mysql_error());  
+		while($row = mysql_fetch_object($sqlresult)) 
+		{
 			echo "<tr><td class='firstrow'><a href='gl_generatereport.php?reportID=".$row->ReportID."'>$row->GL_RENDERER $row->GL_VERSION</a></td>";
 			echo "<td class='firstrow'>".$row->$glcap."</td></tr>";
 		}

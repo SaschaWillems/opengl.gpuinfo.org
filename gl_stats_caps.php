@@ -67,7 +67,7 @@
 			}
 			
 			foreach ($glcapnames as $glcapname) {
-				$sqlResult = mysql_query("SELECT count(*) FROM openglcaps WHERE $glcapname is not null") or die(mysql_error());  	
+				$sqlResult = mysql_query("SELECT count(*) FROM openglcaps WHERE `$glcapname` is not null") or die(mysql_error());  	
 				$sqlCount = mysql_result($sqlResult, 0);
 				echo "<tr>";
 				echo "<td class='firstrow'><a href='gl_stats_caps_single.php?listreportsbycap=$glcapname'>$glcapname</a></td>";
