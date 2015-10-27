@@ -55,7 +55,7 @@
 	$xmlnode = $nodes->item(0)->getElementsByTagName("fileversion"); 
 	$fileversion = str_replace(".", "", $xmlnode->item(0)->textContent);
 	
-	if ($fileversion < 30) 
+	if ($fileversion < 40) 
 	{
 		echo "Report version outdated, please use a recent version of the OpenGL hardware capabilitiy viewer!";    
 		exit();  
