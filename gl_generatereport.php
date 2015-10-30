@@ -69,9 +69,12 @@
 	{
 		foreach ($row as $data)
 		{
-			$caption = mysql_field_name($sqlresult, $colindex);		  
-			if (!is_null($data)) {
-				if ($caption == 'submitter') {
+			$caption = mysql_field_name($sqlresult, $colindex);	
+					
+			if (!is_null($data)) 
+			{
+				if ($caption == 'submitter') 
+				{
 					if ($data != '') {
 						$sqlSubRes = mysql_query("select submissiondate from openglcaps WHERE ReportID = $reportID");
 						$submissionRow = mysql_fetch_row($sqlSubRes);
@@ -103,6 +106,12 @@
 					echo "<tr><td class='firstrow'>Operating system</td>";
 					echo "<td class='valuezeroleftdark'>$data</td></tr>";
 				}
+				
+				if ($caption == 'comment') 
+				{
+					echo "<tr><td class='firstrow'>Comment</td>";
+					echo "<td class='valuezeroleftdark'>$data</td></tr>";
+				}				
 				
 				if ($caption == 'contexttype') {
 					$contextType = "OpenGL";

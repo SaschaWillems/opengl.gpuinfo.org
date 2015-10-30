@@ -77,7 +77,7 @@
 	// * Generate INSERT selection
 	//  Value selection
 	$selectionstr = "INSERT INTO openglcaps (";
-	$selectionstr .= "description, appversion, fileversion, submitter, os, contexttype, "; 
+	$selectionstr .= "description, appversion, fileversion, submitter, os, contexttype, comment, "; 
 	//  Gather caps
 	$xmlnode = $nodes->item(0)->getElementsByTagName('caps'); 
 	$caparray = array();
@@ -92,7 +92,7 @@
 	$valuestr  = "VALUES (";
 	$xmlnode   = $nodes->item(0)->getElementsByTagName("description"); 
 	$description = $xmlnode->item(0)->textContent; 
-	$valuestr .= '"'.$xmlnode->item(0)->textContent .'"'.", ";
+	$valuestr .= '"'.mysql_real_escape_string($xmlnode->item(0)->textContent).'"'.", ";
 	
 	$xmlnode   = $nodes->item(0)->getElementsByTagName("appversion"); 
 	$valuestr .= '"'.$xmlnode->item(0)->textContent .'"'.", ";
@@ -101,10 +101,10 @@
 	$valuestr .= '"'.$xmlnode->item(0)->textContent .'"'.", ";
 	
 	$xmlnode   = $nodes->item(0)->getElementsByTagName("submitter"); 
-	$valuestr .= '"'.$xmlnode->item(0)->textContent .'"'.", ";
-	
+	$valuestr .= '"'.mysql_real_escape_string($xmlnode->item(0)->textContent).'"'.", ";
+
 	$xmlnode   = $nodes->item(0)->getElementsByTagName("os"); 
-	$valuestr .= '"'.$xmlnode->item(0)->textContent .'"'.", ";
+	$valuestr .= '"'.mysql_real_escape_string($xmlnode->item(0)->textContent).'"'.", ";
 	
 	$xmlnode   = $nodes->item(0)->getElementsByTagName("contexttype"); 
 	if ($xmlnode->length==0) { 
@@ -112,6 +112,9 @@
 		} else {
 		$valuestr .= '"'.$xmlnode->item(0)->textContent .'"'.", ";
 	}	
+	
+	$xmlnode   = $nodes->item(0)->getElementsByTagName("comment"); 
+	$valuestr .= '"'.$xmlnode->item(0)->textContent .'"'.", ";		
 	
 	// Gather caps
 	$xmlnode = $nodes->item(0)->getElementsByTagName("caps"); 
