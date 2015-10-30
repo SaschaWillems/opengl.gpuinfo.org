@@ -40,7 +40,7 @@
 			<li><a href="./gl_extensions.php">Extensions</a></li> 
 			<li><a href="./gl_stats_caps.php">Capabilities</a></li> 
             <li><a href="./gl_stats_compressed_formats.php">Formats</a></li>
-			<li><a href='http://www.saschawillems.de/?page_id=771' target='_blank'>Download</a></li>			
+			<li><a href="./download.php">Download</a></li>			
 			<li><a href="./gl_about.php">About</a></li> 
 		  </ul>
 		  <ul class="nav navbar-nav navbar-right">
