@@ -175,7 +175,7 @@
 	
 	$msg = "New hardware report added to the database\n";
 	$msg .= "Description : $description\n";
-	$msg .= "Link : http://opengl.delphigl.de/gl_generatereport.php?reportID=$reportID";
+	$msg .= "Link : http://opengl.gpuinfo.org/gl_generatereport.php?reportID=$reportID";
 	mail('webmaster@delphigl.de', 'New OpenGL report uploaded', $msg); 
 	
 	dbDisconnect();	 

@@ -168,8 +168,7 @@
 	}
 	*/
 		
-
-	$msg = "http://www.gpuinfo.org/gl_generatereport.php?reportID=$reportId\n\nSubmitter : $submitter\n\nLog : $log";
+	$msg = "http://opengl.gpuinfo.org/gl_generatereport.php?reportID=$reportId\n\nSubmitter : $submitter\n\nLog : $log";
 	mail('webmaster@delphigl.de', 'Report updated', $msg); 
 	
 	$sqlStr = "INSERT INTO reportHistory (reportId, submitter, log) VALUES($reportId, '$submitter', '$log');";
