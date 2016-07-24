@@ -32,7 +32,7 @@
 		  </button>
 		  <a href="#">
 			<img src="./images/opengl.png" height="48px">
-		  </a>
+			</a>
 		</div>
 		<div class="collapse navbar-collapse" id="myNavbar">
 		  <ul class="nav navbar-nav">
@@ -40,6 +40,13 @@
 			<li><a href="./gl_extensions.php">Extensions</a></li> 
 			<li><a href="./gl_stats_caps.php">Capabilities</a></li> 
             <li><a href="./gl_stats_compressed_formats.php">Formats</a></li>
+			  <li class="dropdown">
+				  <a class="dropdown-toggle" data-toggle="dropdown" href="#">Statistics
+				  <span class="caret"></span></a>
+				  <ul class="dropdown-menu">
+					<li><a href="./gl_stats_maxsupportedversions.php">Supported OpenGL versions</a></li>
+				  </ul>
+			  </li>							
 			<li><a href="./download.php">Download</a></li>			
 			<li><a href="./gl_about.php">About</a></li> 
 		  </ul>

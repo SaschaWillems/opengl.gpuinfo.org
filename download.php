@@ -24,25 +24,43 @@
 <div id='reportdiv'>	   
 	<div class="panel panel-default">
 		<div class="panel-body" style="margin-left:50px; width:65%px;">    
-			<h2>Downloads</h2>
-			
-<div class="bs-example">
-    <div class="list-group">
-        <a href="./downloads/win/glcapsviewer_1_1_win32.7z" class="list-group-item">
-			<h4 class="list-group-item-heading"><span class="glyphicon glyphicon-floppy-save"></span> Windows</h4>
-			<p class="list-group-item-text">Version 1.1 (32-Bit Executable, also works for 64-Bit)</p>
-        </a>
-        <a href="https://github.com/SaschaWillems/glCapsViewer" class="list-group-item">
-			<h4 class="list-group-item-heading">Linux</h4>
-			<p class="list-group-item-text">The linux release isn't available yet (I'm working on it). But feel free to clone from https://github.com/SaschaWillems/glCapsViewer.git and compile yourself using CMake and make. </p>
-        </a>
-        <a href="https://github.com/SaschaWillems/glCapsViewer" class="list-group-item">
-			<h4 class="list-group-item-heading">Mac OS</h4>
-			<p class="list-group-item-text">The Mac OS release isn't available yet (I'm working on it). But feel free to clone from https://github.com/SaschaWillems/glCapsViewer.git and compile yourself using CMake and make. </p>
-        </a>
-    </div>
-</div>
-
+			<div class="page-header">
+				<h2>Downloads</h2>
+			</div>
+			<div>
+				The OpenGL Hardware Capability Viewer is open source, you can always build the most recent version yourself using the sources from <a href="https://github.com/SaschaWillems/glCapsViewer">https://github.com/SaschaWillems/glCapsViewer</a>.<br>
+			</div>
+			<div class="page-header">
+				<h3>Changelog</h3>
+				<h4>Version 1.1 - 2016-07-24</h4>
+				<ul>
+					<li>Updated user interface</li>
+					<li>Added GL_VIEWPORT_SUBPIXEL_BITS capability (GL_ARB_viewport_array)</li>
+					<li>Added GL_MAX_SHADER_COMPILER_THREADS_ARB (GL_ARB_parallel_shader_compile)</li>
+					<li>Store all dimensions for indexed capabilities:
+						<ul>
+							<li>GL_MAX_VIEWPORT_DIMS (2)</li>
+							<li>GL_MAX_COMPUTE_WORK_GROUP_COUNT (3)</li>
+							<li>GL_MAX_COMPUTE_WORK_GROUP_SIZE (3)</li>
+						</ul>
+					</li>
+				</ul>
+			</div>
+			<div class="page-header">
+				<h3>Windows</h3>
+				<ul>
+					<li><a href="downloads/glcapsviewer_1_1_windows.zip">Version 1.1 (32/64-Bit)</a></li>
+				</ul>
+			<div>
+			</div>
+			<div class="page-header">
+				<h3>Linux</h3>
+				<ul>
+					<li><a href="downloads/glcapsviewer_1_1_linux64.tar.gz">Version 1.1 (64-Bit)</a></li>
+				</ul>
+			</div>
+		</div>    
+	</div>
 </div>
 	
 </body>
