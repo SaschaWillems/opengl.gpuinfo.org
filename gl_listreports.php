@@ -92,6 +92,8 @@
 
 		<table id="reports" class="table table-striped table-bordered table-hover reporttable">
 			<?php
+
+				$fieldlist = " description, ReportID, GL_VENDOR, GL_RENDERER, GL_VERSION, GL_SHADING_LANGUAGE_VERSION, os, date(submissiondate) as reportdate, contextTypeName(contexttype) as ctxType ";
 	
 				echo "<thead><tr>";
 				echo "	<td class='caption'>Renderer</td>";
@@ -105,20 +107,30 @@
 				echo "</tr>";
 				echo "</thead><tbody>";
 
-				$str = "SELECT *, date(submissiondate) as reportdate, contextTypeName(contexttype) as ctxType FROM openglcaps ORDER BY reportid desc";
+				$str = "SELECT ".$fieldlist." FROM openglcaps ORDER BY reportid desc";
 
 				if ($submitter != '') {
-					$str = "SELECT *, date(submissiondate) as reportdate, contextTypeName(contexttype) as ctxType FROM openglcaps where submitter = '$submitter' order by ReportID desc";
+					$str = "SELECT ".$fieldlist." FROM openglcaps where submitter = '".$submitter."' order by ReportID desc";
 				}
 
 				// Search by compressed texture format support
 				if ( ($searchType == 'compressedformat')  && ($searchstring != '') ) {
-					$str  = "SELECT *, date(submissiondate) as reportdate, contextTypeName(contexttype) as ctxType FROM openglcaps where";
+					$str  = "SELECT ".$fieldlist." FROM openglcaps where";
 					$str .= " reportid in (select reportid from compressedTextureFormats where formatEnum =";
 					$str .= " (select enum from enumTranslationTable where text = '$searchstring')) ORDER BY reportid desc";
 				}
 
-				$sqlresult = mysql_query($str);
+				// Search by extension support
+				if ($searchType == 'extension') {
+					$str = "select ".$fieldlist." from openglcaps where reportid ";
+					if ($negate) {
+						$str .= " not ";
+					}
+					$str .= " in ";
+					$str .= "(select reportid from openglgpuandext gex left join openglextensions ex on ex.pk = gex.extensionid where ex.name = '".$searchstring."')";
+				}
+
+				$sqlresult = mysql_query($str) or die(mysql_error());
 
 				while($row = mysql_fetch_object($sqlresult))
 				{
@@ -145,30 +157,6 @@
 					$version = str_replace($versionreplace, "", trim($row->GL_VERSION));
                     $version = "<nobr>".shorten($version, 30)."</nobr>";
 					$glslsversion = trim($row->GL_SHADING_LANGUAGE_VERSION);
-
-					// Search by extension support
-					if ( ($searchstring != '') && ($searchType == 'extension') ) {
-						$str = "SELECT Name FROM openglgpuandext LEFT JOIN openglextensions ON openglextensions.PK = openglgpuandext.ExtensionID WHERE openglgpuandext.ReportID = $reportid";
-
-						$sqlsubresult = mysql_query($str);
-						$subarray = array();
-
-						while($subrow = mysql_fetch_row($sqlsubresult))
-						{
-							foreach ($subrow as $data)
-							{
-								$subarray[] = strtolower($data);
-							}
-						}
-
-						if ($negate == true) {
-							if (in_array($searchstring, $subarray)) { continue; }
-						}
-
-						if ($negate == false) {
-							if (!in_array($searchstring, $subarray)) { continue; }
-						}
-					}
 
 					// Extract version numbers
 					preg_match("|[0-9]+(?:\.[0-9]*)?|", $version, $versionint);
