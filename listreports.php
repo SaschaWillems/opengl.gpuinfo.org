@@ -86,7 +86,7 @@
 <center>
 
 	<div class="tablediv">
-		<form method="get" action="gl_comparereports.php?compare">
+		<form method="get" action="compare.php?compare">
 			<table id="reports" class="table table-striped table-bordered table-hover reporttable" style='width:auto'>
 				<?php
 					if (!$defaultHeader) {
