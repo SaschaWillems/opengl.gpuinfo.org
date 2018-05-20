@@ -85,7 +85,7 @@
     if (isset($_REQUEST['filter']['compressedtextureformat'])) {
 	    $compressedformat = $_REQUEST['filter']['compressedtextureformat'];
         if ($compressedformat != '') {
-            $whereClause = "where reportid in (select reportid from compressedTextureFormats where formatEnum = (select enum from enumTranslationTable where text = :filter_compressedformat))";
+            $whereClause = "where reportid ".($negate ? "not" : "")." in (select reportid from compressedTextureFormats where formatEnum = (select enum from enumTranslationTable where text = :filter_compressedformat))";
             $params['filter_compressedformat'] = $compressedformat;            
         }
     }
