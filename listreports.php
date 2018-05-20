@@ -64,7 +64,17 @@
 		$defaultHeader = false;
 		$headerClass = "header-blue";
 		$caption = "Reports submitted by <b>".$filter["submitter"]."</b>";	
-    }
+	}
+	
+	$filter["capability"] = null;
+    if (($_GET['capability'] != '') && ($_GET['value'] != '')) {
+		$filter["capability"] = $_GET['capability'];
+		$filter["capabilityvalue"] = $_GET['value'];
+		$defaultHeader = false;
+		$headerClass = "header-blue";
+		$link = "displaycapability.php?name=".$filter["capability"];
+		$caption = "Reports with <a href=".$link.">".$filter["capability"]."</a> = ".$filter["capabilityvalue"];	
+	}	
 	
 	if ($defaultHeader) {
 		echo "<div class='header'>";	
@@ -135,7 +145,9 @@
 						'option' : '<?php echo $_GET["option"] ?>',
 						'extension' : '<?php echo $filter["extension"] ?>',		
 						'compressedtextureformat': '<?php echo $filter["compressedtextureformat"] ?>',
-						'submitter': '<?php echo $filter["submitter"] ?>'
+						'submitter': '<?php echo $filter["submitter"] ?>',
+						'capability': '<?php echo $filter["capability"] ?>',
+						'capabilityvalue': '<?php echo $filter["capabilityvalue"] ?>'						
 					}
 				},
 				error: function (xhr, error, thrown) {

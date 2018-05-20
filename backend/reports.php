@@ -99,6 +99,19 @@
         }
     }
 
+    // Capability
+    if (($_REQUEST['filter']['capability'] != '') && ($_REQUEST['filter']['capabilityvalue'] != '')) {
+        $columnname = $_REQUEST['filter']['capability'];
+		// Check if capability column exists
+		$result = DB::$connection->prepare("SELECT * from information_schema.columns where TABLE_NAME= 'openglcaps' and column_name = :columnname");
+		$result->execute([":columnname" => $columnname]);
+        if ($result->rowCount() == 0) {
+            die("Invalid capability");
+        }                
+        $whereClause = "where reportid in (select reportid from openglcaps where `$columnname` = :filter_capability_value)";
+        $params['filter_capability_value'] = $_REQUEST['filter']['capabilityvalue'];
+    }        
+
     if (!empty($orderByColumn)) {
         $orderBy = "order by ".$orderByColumn." ".$orderByDir;
     }
@@ -134,7 +147,7 @@
                 'id' => $device["id"], 
                 'description' => trim($device["description"]),
                 'vendor' => trim($device["vendor"]),
-                'renderer' => '<a href="gl_generatereport.php?reportID='.$device["id"].'">'.trim(shorten($device["renderer"], 30)).'</a>',
+                'renderer' => '<a href="displayreport.php?id='.$device["id"].'">'.trim(shorten($device["renderer"], 30)).'</a>',
                 'version' => $gl_version,
                 'glversion' => $gl_version_int[0],
                 'glslversion' => $glsl_version_int[0],
