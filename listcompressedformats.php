@@ -67,6 +67,12 @@
 			</table> 
 		</div>
 	</div>
+
+	<?php 
+		dbDisconnect();
+		include "footer.html";
+	?>
+	
 </center>
 
 	<script>
@@ -83,6 +89,6 @@
 		} );	
 	</script>
 	
-	
+
 </body>
 </html>
