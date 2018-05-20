@@ -34,8 +34,6 @@
 	$extCount = mysql_result($sqlResult, 0);
 	$sqlResult = mysql_query("SELECT count(*) from compressedTextureFormats where ReportID = $reportID");
 	$compressedCount = mysql_result($sqlResult, 0);
-	$sqlResult = mysql_query("SELECT count(*) from reportHistory where ReportID = $reportID");
-	$historyCount = mysql_result($sqlResult, 0);
 	
 	$sqlresult = mysql_query("SELECT GL_RENDERER FROM openglcaps WHERE ReportID = $reportID");
 	$row = mysql_fetch_array($sqlresult);  
@@ -52,8 +50,6 @@
 			<li class='active'><a data-toggle='tab' href='#tabs-1'>Implementation</a></li>
 			<li><a data-toggle='tab' href='#tabs-2'>Extensions <span class='badge'><?php echo $extCount ?></span></a></li>
 			<li><a data-toggle='tab' href='#tabs-3'>Compressed formats <span class='badge'><?php echo $compressedCount ?></span></a></li>
-			<li><a data-toggle='tab' href='#tabs-5'>History <span class='badge'><?php echo $historyCount ?></span></a></li>
-			<!-- <li><a data-toggle='tab' href='#tabs-6'>n/a</a></li> -->
 		</ul>
 	</div>
 
@@ -101,11 +97,7 @@
 							$index++;
 							echo "<tr><td>Last update</td>";
 							echo "<td><a href='./listreports.php?submitter=$historyRow[1]'>$historyRow[1]</a> ($historyRow[0])</td></tr>";
-						}
-						
-						//						$index++;
-						} else {
-						//$index++;
+						}					
 					}
 				}
 				
@@ -213,35 +205,6 @@
 		</table>
 	</div>
 
-	<!-- Report history -->
-	<div id='tabs-5' class='tab-pane fade in reportdiv'>
-		<table id='history' class='table table-striped table-bordered table-hover responsive' style='width:100%;'>
-			<thead>
-				<tr>
-					<td>Date</td>
-					<td>Submitter</td>
-					<td>Changes</td>
-				</tr>
-			</thead>
-			<tbody>
-				<?php
-					if ($historyCount > 0) {	
-						$sqlResult = mysql_query("SELECT date,submitter,log FROM reportHistory where reportId = $reportID order by id desc") or die(mysql_error());  
-						while($row = mysql_fetch_row($sqlResult)) {
-							echo "<tr><td valign=top>$row[0]</td>";
-							echo "<td valign=top>$row[1]</td>";	
-							echo "<td >$row[2]</td></tr>";	
-						}		
-						} else {
-						echo "<tr><td >No updates have been made to this report yet</td>";
-						echo "<td valign=top>&nbsp;</td>";	
-						echo "<td>&nbsp;</td></tr>";	
-					}
-				?>
-			</tbody>
-		</table>
-	</div>	
-
 </div>
 
 <?php	
@@ -253,7 +216,7 @@
 	<script>
     	$(document).ready(function() 
         {
-            var tableNames = [ "#caps", "#extensions", "#compressedformats", "#history" ];
+            var tableNames = [ "#caps", "#extensions", "#compressedformats" ];
 	        for (var i=0; i < tableNames.length; i++) 
             {           
                 $(tableNames[i]).DataTable({
