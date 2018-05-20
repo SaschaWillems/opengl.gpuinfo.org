@@ -30,11 +30,11 @@
 	$reportID = (int)mysql_real_escape_string($_GET['id']); 
 	
 	// Counters for tab captions
-	$sqlResult = mysql_query("select count(*) from openglgpuandext where ReportID = $reportID");
+	$sqlResult = mysql_query("SELECT count(*) from openglgpuandext where ReportID = $reportID");
 	$extCount = mysql_result($sqlResult, 0);
-	$sqlResult = mysql_query("select count(*) from compressedTextureFormats where ReportID = $reportID");
+	$sqlResult = mysql_query("SELECT count(*) from compressedTextureFormats where ReportID = $reportID");
 	$compressedCount = mysql_result($sqlResult, 0);
-	$sqlResult = mysql_query("select count(*) from reportHistory where ReportID = $reportID");
+	$sqlResult = mysql_query("SELECT count(*) from reportHistory where ReportID = $reportID");
 	$historyCount = mysql_result($sqlResult, 0);
 	
 	$sqlresult = mysql_query("SELECT GL_RENDERER FROM openglcaps WHERE ReportID = $reportID");
@@ -83,7 +83,7 @@
 			if (!is_null($data)) {
 				if ($caption == 'submitter') {
 					if ($data != '') {
-						$sqlSubRes = mysql_query("select submissiondate from openglcaps WHERE ReportID = $reportID");
+						$sqlSubRes = mysql_query("SELECT submissiondate from openglcaps WHERE ReportID = $reportID");
 						$submissionRow = mysql_fetch_row($sqlSubRes);
 						if ($submissionRow[0] != "") {
 							$submissionDate = " (".$submissionRow[0].")";
@@ -91,16 +91,16 @@
 							$submissionDate = "";
 						}
 						
-						echo "<tr><td class='firstrow'>Submitted by</td>";
-						echo "<td class='valuezeroleftdark'><a href='./listreports.php?submitter=$data'>$data</a>$submissionDate</td></tr>";
+						echo "<tr><td>Submitted by</td>";
+						echo "<td><a href='./listreports.php?submitter=$data'>$data</a>$submissionDate</td></tr>";
 						
 						$sqlHistoryResult = mysql_query("SELECT date,submitter from reportHistory where Reportid = $reportID order by Id desc");						
 						$historyCount = mysql_num_rows($sqlHistoryResult);
 						$historyRow = mysql_fetch_row($sqlHistoryResult);
 						if ($historyCount > 0) {
 							$index++;
-							echo "<tr><td class='firstrow'>Last update</td>";
-							echo "<td class='valuezeroleftdark'><a href='./listreports.php?submitter=$historyRow[1]'>$historyRow[1]</a> ($historyRow[0])</td></tr>";
+							echo "<tr><td>Last update</td>";
+							echo "<td><a href='./listreports.php?submitter=$historyRow[1]'>$historyRow[1]</a> ($historyRow[0])</td></tr>";
 						}
 						
 						//						$index++;
@@ -110,13 +110,13 @@
 				}
 				
 				if ($caption == 'os') {
-					echo "<tr><td class='firstrow'>Operating system</td>";
-					echo "<td class='valuezeroleftdark'>$data</td></tr>";
+					echo "<tr><td>Operating system</td>";
+					echo "<td>$data</td></tr>";
 				}
 				
 				if ($caption == 'comment') {
-					echo "<tr><td class='firstrow'>Comment</td>";
-					echo "<td class='valuezeroleftdark'>$data</td></tr>";
+					echo "<tr><td>Comment</td>";
+					echo "<td>$data</td></tr>";
 				}
 
 				if ($caption == 'contexttype') {
@@ -130,17 +130,17 @@
 					if ($data == "es3") {
 						$contextType = "OpenGL ES 3.0";
 					}
-					echo "<tr><td class='firstrow'>Context type</td>";
-					echo "<td class='valuezeroleftdark'>$contextType</td></tr>";
+					echo "<tr><td>Context type</td>";
+					echo "<td>$contextType</td></tr>";
 				}
 				
 				if (strpos($caption, 'GL_') !== false) {
-					echo "<tr><td class='firstrow'><a href='./displaycapability.php?name=$caption'>$caption</a></td>";
+					echo "<tr><td><a href='./displaycapability.php?name=$caption'>$caption</a></td>";
 					
 					if ((is_numeric($data) && ($caption!=='GL_SHADING_LANGUAGE_VERSION')) ) {
-						echo "<td class='valuezeroleftdark'>".number_format($data)."</td></tr>";
+						echo "<td>".number_format($data)."</td></tr>";
 						} else {
-						echo "<td class='valuezeroleftdark'>$data</td></tr>";
+						echo "<td>$data</td></tr>";
 					}
 					
 				}
@@ -178,7 +178,7 @@
 	while($row = mysql_fetch_row($sqlresult)) {	
 		foreach ($row as $data) {
 			$extarray[]= $data;
-			echo "<tr><td class='firstrow'><a href='./listreports.php?listreportsbyextension=$data'>$data</a></td></tr>";
+			echo "<tr><td><a href='./listreports.php?listreportsbyextension=$data'>$data</a></td></tr>";
 		}	
 	}
 ?>
@@ -202,11 +202,11 @@
 					if ($sqlCount > 0) {
 						while($row = mysql_fetch_row($sqlresult)) {
 							foreach ($row as $data) {
-								echo "<tr><td class='firstrow'><a href='./listreports.php?compressedtextureformat=$data'>$data</a></td></tr>";
+								echo "<tr><td><a href='./listreports.php?compressedtextureformat=$data'>$data</a></td></tr>";
 							}
 						}
 						} else {
-						echo "<tr><td class='firstrow'>No compressed formats available or submitted</td></tr>";
+						echo "<tr><td>No compressed formats available or submitted</td></tr>";
 					}	
 				?>	
 			</tbody>
@@ -228,14 +228,14 @@
 					if ($historyCount > 0) {	
 						$sqlResult = mysql_query("SELECT date,submitter,log FROM reportHistory where reportId = $reportID order by id desc") or die(mysql_error());  
 						while($row = mysql_fetch_row($sqlResult)) {
-							echo "<tr><td class='firstrow' valign=top>$row[0]</td>";
-							echo "<td class='firstrow' valign=top>$row[1]</td>";	
-							echo "<td class='firstrow' >$row[2]</td></tr>";	
+							echo "<tr><td valign=top>$row[0]</td>";
+							echo "<td valign=top>$row[1]</td>";	
+							echo "<td >$row[2]</td></tr>";	
 						}		
 						} else {
-						echo "<tr><td class='firstrow' >No updates have been made to this report yet</td>";
-						echo "<td class='firstrow' valign=top>&nbsp;</td>";	
-						echo "<td class='firstrow'>&nbsp;</td></tr>";	
+						echo "<tr><td >No updates have been made to this report yet</td>";
+						echo "<td valign=top>&nbsp;</td>";	
+						echo "<td>&nbsp;</td></tr>";	
 					}
 				?>
 			</tbody>
