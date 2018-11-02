@@ -3,7 +3,7 @@
 	*
 	* OpenGL hardware capability database server implementation
 	*	
-	* Copyright (C) 2011-2015 by Sascha Willems (www.saschawillems.de)
+	* Copyright (C) 2011-2018 by Sascha Willems (www.saschawillems.de)
 	*	
 	* This code is free software, you can redistribute it and/or
 	* modify it under the terms of the GNU Affero General Public
@@ -19,18 +19,17 @@
 	*
 	*/
 	
-	include './../gl_config.php';
+	include '../dbconfig.php';
 	
-	dbConnect();	
-	
-	// Fetches all available devices and returns them as xml	
-		
-	$description = mysql_real_escape_string($_GET['description']);	
-	
-	$sqlResult = mysql_query("select count(*) from openglcaps");
-	$sqlCount = mysql_result($sqlResult, 0);
-	$arr = array('count' => $sqlCount);	
-	echo "jsoncallback(".json_encode($arr).")";		
-	
-	dbDisconnect();	 		
+	DB::connect();				
+	try {	
+		$stmnt = DB::$connection->prepare("SELECT count(*) from openglcaps");
+		$stmnt->execute([]);
+		$arr = array('count' => $stmnt->fetchColumn());	
+		echo "jsoncallback(".json_encode($arr).")";			
+	} catch (PDOException $e) {
+		header('HTTP/ 500 server error');
+		echo 'Server error: Could not check report!';
+	}
+	DB::disconnect();	
 ?>

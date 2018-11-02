@@ -3,7 +3,7 @@
 	*
 	* OpenGL hardware capability database server implementation
 	*	
-	* Copyright (C) 2011-2015 by Sascha Willems (www.saschawillems.de)
+	* Copyright (C) 2011-2018 by Sascha Willems (www.saschawillems.de)
 	*	
 	* This code is free software, you can redistribute it and/or
 	* modify it under the terms of the GNU Affero General Public
@@ -22,23 +22,27 @@
 	// Checks wether an OpenGL report is already present in the database
 	// Used by client application
 	
-	include './gl_config.php';
+	include 'dbconfig.php';
 	
-	dbConnect();	
+	DB::connect();	
 			
-	$description = mysql_real_escape_string($_GET['description']);	
-	
-	$sqlresult = mysql_query("select ReportID from openglcaps where description = '$description'");
-	$sqlcount = mysql_num_rows($sqlresult);   
-	$sqlrow = mysql_fetch_row($sqlresult);
-	
-	if ($sqlcount > 0) {
-		header('HTTP/ 200 report_present '.$sqlrow[0].'');
-		echo "$sqlrow[0]";
-	} else {
-		header('HTTP/ 200 report_new');
-		echo "-1";
+	$description = $_GET['description'];
+
+	try {	
+		$stmnt = DB::$connection->prepare("SELECT ReportID from openglcaps where description = :description");
+		$stmnt->execute(["description" => $description]);
+		if ($stmnt->rowCount() > 0) {
+			$row = $stmnt->fetch(PDO::FETCH_NUM);		
+			header('HTTP/ 200 report_present '.$row[0].'');
+			echo "$row[0]";
+		} else {
+			header('HTTP/ 200 report_new');
+			echo "-1";
+		}
+	} catch (PDOException $e) {
+		header('HTTP/ 500 server error');
+		echo 'Server error: Could not check report!';
 	}
 
-	dbDisconnect();	
+	DB::disconnect();	
 ?>
