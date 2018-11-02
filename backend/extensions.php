@@ -102,7 +102,7 @@
     }
 
     $filteredCount = 0;
-    $stmnt = DB::$connection->prepare("select count(*) from openglcaps");
+    $stmnt = DB::$connection->prepare("SELECT count(*) from viewExtensions");
     $stmnt->execute();
     $totalCount = $stmnt->fetchColumn(); 
 
