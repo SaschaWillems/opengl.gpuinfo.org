@@ -22,23 +22,18 @@
 	include 'header.html';
 	include 'dbconfig.php';
 	
-	dbConnect();
+	DB::connect();
 
-	echo "<center>";
+	$reportID = (int)($_GET['id']); 
 	
-	// list single reports
-	$reportID = (int)mysql_real_escape_string($_GET['id']); 
-	
-	// Counters for tab captions
-	$sqlResult = mysql_query("SELECT count(*) from openglgpuandext where ReportID = $reportID");
-	$extCount = mysql_result($sqlResult, 0);
-	$sqlResult = mysql_query("SELECT count(*) from compressedTextureFormats where ReportID = $reportID");
-	$compressedCount = mysql_result($sqlResult, 0);
-	
-	$sqlresult = mysql_query("SELECT GL_RENDERER FROM openglcaps WHERE ReportID = $reportID");
-	$row = mysql_fetch_array($sqlresult);  
-	
-	?>	
+	$extCount = DB::getCount("SELECT count(*) from openglgpuandext where ReportID  = :reportid", [':reportid' => $reportID]);
+	$compressedCount = DB::getCount("SELECT count(*) from compressedTextureFormats where reportid = :reportid", [':reportid' => $reportID]);
+		
+	$stmnt = DB::$connection->prepare("SELECT GL_RENDERER FROM openglcaps WHERE ReportID = :reportid");
+	$stmnt->execute(["reportid" => $reportID]);
+	$row = $stmnt->fetch(PDO::FETCH_ASSOC);  	
+?>	
+<center>
 	<!-- Header -->
 	<div class='header'>
 	<h4 style='margin-left:10px;'>Report for <?php echo $row['GL_RENDERER']?></h4>
@@ -64,92 +59,95 @@
 					<td>Value</td>
 				</tr>
 			</thead>
-		<tbody>
-<?php	
-	$sqlresult = mysql_query("SELECT * FROM openglcaps WHERE ReportID = $reportID");
-	$colindex  = 0;    
-	$index = 0;
-	$emptyCaps = array();
-	
-	while($row = mysql_fetch_row($sqlresult))
-	{
-		foreach ($row as $data)
-		{
-			$caption = mysql_field_name($sqlresult, $colindex);		  
-			if (!is_null($data)) {
-				if ($caption == 'submitter') {
-					if ($data != '') {
-						$sqlSubRes = mysql_query("SELECT submissiondate from openglcaps WHERE ReportID = $reportID");
-						$submissionRow = mysql_fetch_row($sqlSubRes);
-						if ($submissionRow[0] != "") {
-							$submissionDate = " (".$submissionRow[0].")";
-							} else {
-							$submissionDate = "";
+			<tbody>
+				<?php	
+					$stmnt = DB::$connection->prepare("SELECT * FROM openglcaps WHERE ReportID = :reportid");
+					$stmnt->execute(["reportid" => $reportID]);
+
+					$colindex  = 0;    
+					$index = 0;
+					$emptyCaps = array();
+					
+					while($row = $stmnt->fetch(PDO::FETCH_ASSOC)) {
+						foreach ($row as $data) {
+							$meta = $stmnt->getColumnMeta($index);
+							$caption = $meta["name"];  	
+							if (!is_null($data)) {
+								if ($caption == 'submitter') {
+									if ($data != '') {
+										$stmntSub = DB::$connection->prepare("SELECT submissiondate FROM openglcaps WHERE ReportID = :reportid");
+										$stmntSub->execute(["reportid" => $reportID]);				
+										$subRow = $stmntSub->fetch(PDO::FETCH_NUM);
+										if ($subRow[0] != "") {
+											$submissionDate = " (".$subRow[0].")";
+											} else {
+											$submissionDate = "";
+										}
+										
+										echo "<tr><td>Submitted by</td>";
+										echo "<td><a href='./listreports.php?submitter=$data'>$data</a>$submissionDate</td></tr>";
+										
+										$stmntHistory = DB::$connection->prepare("SELECT date,submitter from reportHistory WHERE ReportID = :reportid");
+										$stmntHistory->execute(["reportid" => $reportID]);				
+										$historyCount = $stmntHistory->rowCount();
+										$historyRow = $stmntHistory->fetch(PDO::FETCH_NUM);
+										if ($historyCount > 0) {
+											$index++;
+											echo "<tr><td>Last update</td>";
+											echo "<td><a href='./listreports.php?submitter=$historyRow[1]'>$historyRow[1]</a> ($historyRow[0])</td></tr>";
+										}					
+									}
+								}
+								
+								if ($caption == 'os') {
+									echo "<tr><td>Operating system</td>";
+									echo "<td>$data</td></tr>";
+								}
+								
+								if ($caption == 'comment') {
+									echo "<tr><td>Comment</td>";
+									echo "<td>$data</td></tr>";
+								}
+
+								if ($caption == 'contexttype') {
+									$contextType = "OpenGL";
+									if ($data == "core") {
+										$contextType = "OpenGL core";
+									}
+									if ($data == "es2") {
+										$contextType = "OpenGL ES 2.0";
+									}
+									if ($data == "es3") {
+										$contextType = "OpenGL ES 3.0";
+									}
+									echo "<tr><td>Context type</td>";
+									echo "<td>$contextType</td></tr>";
+								}
+								
+								if (strpos($caption, 'GL_') !== false) {
+									echo "<tr><td><a href='./displaycapability.php?name=$caption'>$caption</a></td>";
+									
+									if ((is_numeric($data) && ($caption!=='GL_SHADING_LANGUAGE_VERSION')) ) {
+										echo "<td>".number_format($data)."</td></tr>";
+										} else {
+										echo "<td>$data</td></tr>";
+									}
+									
+								}
+							}
+							
+							if (strpos($caption, 'extensions') !== false) {
+								$extstr = $data; 	  
+							};
+							if ((strpos($caption, 'GL_') !== false) && (is_null($data))) {	
+								$emptyCaps[] = $caption;
+							}
+							$colindex++;
+							$index++;
 						}
 						
-						echo "<tr><td>Submitted by</td>";
-						echo "<td><a href='./listreports.php?submitter=$data'>$data</a>$submissionDate</td></tr>";
-						
-						$sqlHistoryResult = mysql_query("SELECT date,submitter from reportHistory where Reportid = $reportID order by Id desc");						
-						$historyCount = mysql_num_rows($sqlHistoryResult);
-						$historyRow = mysql_fetch_row($sqlHistoryResult);
-						if ($historyCount > 0) {
-							$index++;
-							echo "<tr><td>Last update</td>";
-							echo "<td><a href='./listreports.php?submitter=$historyRow[1]'>$historyRow[1]</a> ($historyRow[0])</td></tr>";
-						}					
-					}
-				}
-				
-				if ($caption == 'os') {
-					echo "<tr><td>Operating system</td>";
-					echo "<td>$data</td></tr>";
-				}
-				
-				if ($caption == 'comment') {
-					echo "<tr><td>Comment</td>";
-					echo "<td>$data</td></tr>";
-				}
-
-				if ($caption == 'contexttype') {
-					$contextType = "OpenGL";
-					if ($data == "core") {
-						$contextType = "OpenGL core";
-					}
-					if ($data == "es2") {
-						$contextType = "OpenGL ES 2.0";
-					}
-					if ($data == "es3") {
-						$contextType = "OpenGL ES 3.0";
-					}
-					echo "<tr><td>Context type</td>";
-					echo "<td>$contextType</td></tr>";
-				}
-				
-				if (strpos($caption, 'GL_') !== false) {
-					echo "<tr><td><a href='./displaycapability.php?name=$caption'>$caption</a></td>";
-					
-					if ((is_numeric($data) && ($caption!=='GL_SHADING_LANGUAGE_VERSION')) ) {
-						echo "<td>".number_format($data)."</td></tr>";
-						} else {
-						echo "<td>$data</td></tr>";
-					}
-					
-				}
-			}
-			
-			if (strpos($caption, 'extensions') !== false) {
-				$extstr = $data; 	  
-			};
-			if ((strpos($caption, 'GL_') !== false) && (is_null($data))) {	
-				$emptyCaps[] = $caption;
-			}
-			$colindex++;
-			$index++;
-		}
-		
-	}	
-?>
+					}	
+				?>
 			</tbody>
 		</table>
 	</div>
@@ -163,17 +161,17 @@
 			</tr>
 		</thead>
 		<tbody>
-<?php	
-	$str = "SELECT Name FROM openglgpuandext LEFT JOIN openglextensions ON openglextensions.PK = openglgpuandext.ExtensionID WHERE openglgpuandext.ReportID = $reportID ORDER BY FIELD(SUBSTR(openglextensions.Name, 1, 3), 'GL_') DESC, FIELD(SUBSTR(openglextensions.Name, INSTR(openglextensions.Name, '_')+1, 3), 'EXT', 'ARB') DESC, openglextensions.Name ASC";  
-	$sqlresult = mysql_query($str);  
-	$extarray = array();
-	while($row = mysql_fetch_row($sqlresult)) {	
-		foreach ($row as $data) {
-			$extarray[]= $data;
-			echo "<tr><td><a href='./listreports.php?listreportsbyextension=$data'>$data</a></td></tr>";
-		}	
-	}
-?>
+			<?php	
+				$stmnt = DB::$connection->prepare("SELECT Name FROM openglgpuandext LEFT JOIN openglextensions ON openglextensions.PK = openglgpuandext.ExtensionID WHERE openglgpuandext.ReportID = :reportid ORDER BY FIELD(SUBSTR(openglextensions.Name, 1, 3), 'GL_') DESC, FIELD(SUBSTR(openglextensions.Name, INSTR(openglextensions.Name, '_')+1, 3), 'EXT', 'ARB') DESC, openglextensions.Name ASC");
+				$stmnt->execute(["reportid" => $reportID]);
+				$extarray = array();
+				while($row = $stmnt->fetch(PDO::FETCH_NUM)) {	
+					foreach ($row as $data) {
+						$extarray[]= $data;
+						echo "<tr><td><a href='./listreports.php?listreportsbyextension=$data'>$data</a></td></tr>";
+					}	
+				}
+			?>
 		</tbody>
 		</table>
 	</div>
@@ -188,16 +186,15 @@
 			</thead>
 			<tbody>
 				<?php	
-					$sqlresult = mysql_query("select text from compressedTextureFormats ctf join enumTranslationTable ett on ctf.formatEnum = enum where reportId = $reportID");  
-					$sqlCount = mysql_num_rows($sqlresult);
-					$compFormats = array();
-					if ($sqlCount > 0) {
-						while($row = mysql_fetch_row($sqlresult)) {
+					$stmnt = DB::$connection->prepare("SELECT text from compressedTextureFormats ctf join enumTranslationTable ett on ctf.formatEnum = enum where reportId = :reportid");
+					$stmnt->execute(["reportid" => $reportID]);
+					if ($stmnt->rowCount() > 0) {
+						while($row = $stmnt->fetch(PDO::FETCH_ASSOC)) {
 							foreach ($row as $data) {
 								echo "<tr><td><a href='./listreports.php?compressedtextureformat=$data'>$data</a></td></tr>";
 							}
 						}
-						} else {
+					} else {
 						echo "<tr><td>No compressed formats available or submitted</td></tr>";
 					}	
 				?>	
@@ -208,7 +205,7 @@
 </div>
 
 <?php	
-	dbDisconnect();  
+	DB::disconnect();  
 	include 'footer.html';
 ?>
 </center>
