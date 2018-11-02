@@ -20,25 +20,15 @@
 	*/
 	
     include 'header.html';		
-    include 'dbconfig.php';
+	include 'dbconfig.php';   
+	
+	DB::connect();
 
-    dbConnect();
-    
-	$sql_result = mysql_query("SELECT count(distinct(formatEnum)) FROM compressedTextureFormats") or die("Fatal: Could not fetch data!");
-    $format_count = mysql_result($sql_result, 0);
-    
-	$sql_result = mysql_query("SELECT count(*) FROM openglcaps") or die("Fatal: Could not fetch data!");
-	$report_count = mysql_result($sql_result, 0);    
+	$format_count = DB::getCount("SELECT count(distinct(formatEnum)) FROM compressedTextureFormats", []);
 ?>
-
 	<div class='header'>
 		<h4 style='margin-left:10px;'>Listing all compressed texture formats (<?php echo $format_count ?>)</h4>
 	</div>
-
-<?php
-	$sqlstr = "SELECT * FROM viewCompressedFormats";         
-	$sql_result = mysql_query($sqlstr) or die(mysql_error());
-?>
 
 <center>	
 	<div class='parentdiv'>
@@ -52,16 +42,22 @@
 				</thead>
 				<tbody>
 					<?php		
-						while ($row = mysql_fetch_row($sql_result)) {
-							$formatname = $row[0];
-							if (!empty($formatname)) {
-								echo "<tr>";						
-								echo "<td class='firstcolumn'><a href='listreports.php?compressedtextureformat=".$formatname."'>".$formatname."</a> (<a href='listreports.php?compressedtextureformat=".$formatname."&option=not'>not</a>)</td>";
-								echo "<td class='firstcolumn' align=center>".round(($row[1] / $report_count * 100), 2)."%</td>";
-								echo "</tr>";	    
-								$index++;
-							}
-						}            			
+						try {
+							$stmnt = DB::$connection->prepare("SELECT * FROM viewCompressedFormats"); 
+							$stmnt->execute();
+							while ($row = $stmnt->fetch(PDO::FETCH_NUM)) {
+								$formatname = $row[0];
+								if (!empty($formatname)) {
+									echo "<tr>";						
+									echo "<td class='firstcolumn'><a href='listreports.php?compressedtextureformat=".$formatname."'>".$formatname."</a> (<a href='listreports.php?compressedtextureformat=".$formatname."&option=not'>not</a>)</td>";
+									echo "<td class='firstcolumn' align=center>".round($row[1], 2)."%</td>";
+									echo "</tr>";	    
+									$index++;
+								}
+							}    
+						} catch (PDOException $e) {
+							echo "<b>Error while fetching compressed formats list</b><br>";
+						}
 					?>   
 				</tbody>
 			</table> 
@@ -69,7 +65,7 @@
 	</div>
 
 	<?php 
-		dbDisconnect();
+		DB::disconnect();
 		include "footer.html";
 	?>
 	
@@ -89,6 +85,5 @@
 		} );	
 	</script>
 	
-
 </body>
 </html>
