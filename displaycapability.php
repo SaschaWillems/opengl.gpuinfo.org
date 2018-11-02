@@ -46,6 +46,14 @@
 		die();		
 	}
 
+	$compare = ' > 0';
+	if (($name === 'GL_VENDOR') || (($name === 'GL_RENDERER'))) {
+		$compare = 'is not null';
+	}
+	if (stripos($name, "GL_MIN") !== false) {
+		$compare = 'is not null';
+	}
+
 ?>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>	
 	<script>
@@ -79,8 +87,8 @@
 					</thead>
 					<tbody>				
 						<?php		
-							DB::connect();			
-							$result = DB::$connection->prepare("SELECT `$name` as value, count(0) as reports from openglcaps where `$name` > 0 group by 1 order by 1");
+							DB::connect();
+							$result = DB::$connection->prepare("SELECT `$name` as value, count(0) as reports from openglcaps where `$name` ".$compare." group by 1 order by 1");
 							$result->execute();
 							$rows = $result->fetchAll(PDO::FETCH_ASSOC);
 							foreach ($rows as $cap) {
@@ -112,7 +120,7 @@
 			<?php 
 				DB::connect();			
 				// TODO: Check if name is valid column name (security!)
-				$result = DB::$connection->prepare("SELECT `$name` as value, count(0) as reports from openglcaps where `$name` > 0 group by 1 order by 2 desc");
+				$result = DB::$connection->prepare("SELECT `$name` as value, count(0) as reports from openglcaps where `$name` ".$compare." group by 1 order by 2 desc");
 				$result->execute();
 				$rows = $result->fetchAll(PDO::FETCH_ASSOC);
 				foreach ($rows as $row) {

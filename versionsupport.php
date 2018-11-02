@@ -20,12 +20,7 @@
 	*/
 	
     include 'header.html';		
-    include 'dbconfig.php';
-	
-	dbConnect();	 
-    
-	$sql_result = mysql_query("SELECT count(distinct(formatEnum)) FROM compressedTextureFormats") or die(mysql_error());
-	$sqlCount = mysql_result($sql_result, 0);
+	include 'dbconfig.php';   
 ?>
 
 	<div class='header'>
@@ -38,7 +33,7 @@
 	<div class='parentdiv'>
 		<div class='tablediv' style='width:auto; display: inline-block;'>	
 	
-	<form method="get" action="gl_comparereports.php?compare" style="margin-bottom:0px;">	
+	<form method="get" action="compare.php?compare" style="margin-bottom:0px;">	
 		
 	<table id="reports" class="table table-striped table-bordered table-hover reporttable">
 		<thead>
@@ -55,25 +50,24 @@
 		</thead>
 		<tbody>		
 			<?php
-								
-			
-				$str = "select * from viewDeviceMaxVersions";	  	   			
-				$sqlresult = mysql_query($str) or die(mysql_error()); 				
-				
-				while($row = mysql_fetch_object($sqlresult))
-				{
-					$name = trim($row->name);
-					$version = $row->maxversion;
-					$reportid = trim($row->repid);	 
-									
-					echo "<tr>";				
-					echo "	<td class='firstrow'><a href='displayreport.php?id=$reportid'>$name</a></td>";		 
-					echo "	<td class='valuezeroleftblack'>$version</td>";
-					echo "	<td align='center'><input type='checkbox' name='id[$reportid]'></td>";				
-					echo "</tr>";					
-				}
-				
-				dbDisconnect();  
+				DB::connect(); 
+				try {				
+					$stmnt = DB::$connection->prepare("SELECT * from viewDeviceMaxVersions");
+					$stmnt->execute([]);
+					while($row = $stmnt->fetch(PDO::FETCH_ASSOC)) {
+						$name = trim($row["name"]);
+						$version = $row["maxversion"];
+						$reportid = trim($row["repid"]);
+						echo "<tr>";				
+						echo "	<td class='firstrow'><a href='displayreport.php?id=$reportid'>$name</a></td>";		 
+						echo "	<td class='valuezeroleftblack'>$version</td>";
+						echo "	<td align='center'><input type='checkbox' name='id[$reportid]'></td>";				
+						echo "</tr>";					
+					}
+				} catch (PDOException $e) {
+					echo "<b>Error while fetching supported versions</b><br>";
+				}				
+				DB::disconnect();  
 			?>   
 		</tbody></table>
 		
