@@ -22,20 +22,22 @@
 	include 'header.html';
 	include 'dbconfig.php';
 	
-	dbConnect();	
-	
+	DB::connect();	
+
     function shorten($string, $length) {
         return (strlen($string) >= $length) ? substr($string, 0, $length-10). " ... " : $string;
 	}
 	
 	function implementation_details($reportids) {
+		// TODO: Optimize, single statement
 		$headerFields = array("GL_VENDOR", "GL_RENDERER", "GL_VERSION");
 		foreach ($headerFields as $headerField) {
 			echo "<tr>";		
 			echo "<td>$headerField</td>";		 
 			foreach ($reportids as $repid) {
-				$sqlresult = mysql_query("SELECT $headerField FROM openglcaps WHERE ReportID = $repid"); 
-				$sqlrow = mysql_fetch_row($sqlresult);
+				$stmnt = DB::$connection->prepare("SELECT $headerField FROM openglcaps WHERE ReportID = :reportid");
+				$stmnt->execute(["reportid" => $repid]);
+				$sqlrow = $stmnt->fetch(PDO::FETCH_NUM);
 				echo "<td>".shorten($sqlrow[0], 32)."</td>";
 			}	
 			echo "</tr>";
@@ -49,14 +51,16 @@
 		$reportlimit = false;
 		
 		foreach ($_REQUEST['id'] as $k => $v) {
-			$reportids[] = $k;	
+			$reportids[] = (int)$k;	
 			if (count($reportids) > 7) {
 				$reportlimit = true;	 
 				break; 
 			}
 		}   
-					
+			
 		if ($reportlimit) {echo "<b>Note : </b>You selected more than 8 reports to compare, only displaying the first 8 selected reports.\n"; }	
+
+		$repids = implode(",", $reportids);   
 
 		?>
 		<div class='header'>
@@ -94,102 +98,95 @@
 				</thead>
 				<tbody>
 					<?php		
-							$repids = implode(",", $reportids);   
-							$sql       = "SELECT * FROM openglcaps WHERE ReportID IN (" . $repids . ")" ;
-							$sqlresult = mysql_query($sql);
-							$reportindex = 0;
+						$stmnt = DB::$connection->prepare("SELECT * FROM openglcaps WHERE ReportID IN ($repids)");
+						$stmnt->execute();
+						$reportindex = 0;
 							
-							// Gather data into array
-							$column    = array();
-							$captions  = array();
+						// Gather data into array
+						$column    = array();
+						$captions  = array();
 							
-							while($row = mysql_fetch_row($sqlresult)) {
-								$colindex = 0;
-								$reportdata = array();		
-								
-								foreach ($row as $data) {
-									$caption = mysql_field_name($sqlresult, $colindex);		  
-									
-									if (strpos($caption, 'GL_') !== false) {
-										$reportdata[] = $data;	  
-										$captions[]   = $caption;
-									}
-									
-									if ($caption == 'submitter') {
-										$reportdata[] = $data;	  
-										$captions[]   = 'Submitted by';
-									}
-									
-									if ($caption == 'os') {
-										$reportdata[] = $data;	  
-										$captions[]   = 'Operating System';
-									}
-									
-									$colindex++;
-								} 
-								
-								$column[] = $reportdata; 
-								
-								$reportindex++;
-							}   
-							
-							// Generate table from selected reports
-							$index = 1;  
-							for ($i = 0, $arrsize = sizeof($column[0]); $i < $arrsize; ++$i) { 	  
-								$add = "";
-
-								// Get min and max for this capability
-								if (is_numeric($column[0][$i])) {
-									
-									$minval = $column[0][$i];
-									$maxval = $column[0][$i];
-									
-									for ($j = 0, $subarrsize = sizeof($column); $j < $subarrsize; ++$j) {	 			
-										if ($column[$j][$i] < $minval) {
-											$minval = $column[$j][$i];
-										}
-										if ($column[$j][$i] > $maxval) {
-											$maxval = $column[$j][$i];
-										}
-									}
+						while($row = $stmnt->fetch(PDO::FETCH_NUM)) {
+							$colindex = 0;
+							$reportdata = array();									
+							foreach ($row as $data) {
+								$meta = $stmnt->getColumnMeta($colindex);
+								$caption = $meta["name"];  	
+								if (strpos($caption, 'GL_') !== false) {
+									$reportdata[] = $data;	  
+									$captions[]   = $caption;
 								}								
-								
-								// Caption
-								$fontStyle = ($minval < $maxval) ? "style='color:#FF0000;'" : "";					
-								$headerFields = array("GL_VENDOR", "GL_RENDERER", "GL_VERSION", "GL_SHADING_LANGUAGE_VERSION", "Operating System", "Submitted by");
-								if (!in_array($captions[$i], $headerFields)) {
-									$className = ($minval < $maxval) ? "" : "class='sameCaps'";
-								} else {
-									$className = "";
-								}
-								echo "<tr $add $className>\n";
-								echo "<td $fontStyle>". $captions[$i] ."</td>\n";									
+								if ($caption == 'submitter') {
+									$reportdata[] = $data;	  
+									$captions[]   = 'Submitted by';
+								}								
+								if ($caption == 'os') {
+									$reportdata[] = $data;	  
+									$captions[]   = 'Operating System';
+								}								
+								$colindex++;
+							} 							
+							$column[] = $reportdata; 							
+							$reportindex++;
+						}   
 							
-								// Values
-								for ($j = 0, $subarrsize = sizeof($column); $j < $subarrsize; ++$j) {	 
-									$fontstyle = '';
-									if ($captions[$i] == 'GL_RENDERER') {					
-										echo "<td class='valuezeroleftblack'>".shorten($column[$j][$i], 32)."</td>";
-									} else {
-										if (is_numeric($column[$j][$i]) ) {
-											
-											if ($column[$j][$i] < $maxval) {
-												$fontstyle = "style='color:#FF0000;'";
-											}
-											
-											if ($captions[$i] == 'GL_SHADING_LANGUAGE_VERSION') {
-												echo "<td>".number_format($column[$j][$i], 2, '.', ',')."</td>";
-												} else {
-												echo "<td $fontstyle>".number_format($column[$j][$i], 0, '.', ',')."</td>";
-											}
-											} else {
-											echo "<td>".$column[$j][$i]."</td>";
-										}
+						// Generate table from selected reports
+						$index = 1;  
+						for ($i = 0, $arrsize = sizeof($column[0]); $i < $arrsize; ++$i) { 	  
+							$add = "";
+
+							// Get min and max for this capability
+							if (is_numeric($column[0][$i])) {
+								
+								$minval = $column[0][$i];
+								$maxval = $column[0][$i];
+								
+								for ($j = 0, $subarrsize = sizeof($column); $j < $subarrsize; ++$j) {	 			
+									if ($column[$j][$i] < $minval) {
+										$minval = $column[$j][$i];
 									}
-								} 
-								echo "</tr>\n";
-								$index++;
-							}   
+									if ($column[$j][$i] > $maxval) {
+										$maxval = $column[$j][$i];
+									}
+								}
+							}								
+								
+							// Caption
+							$fontStyle = ($minval < $maxval) ? "style='color:#FF0000;'" : "";					
+							$headerFields = array("GL_VENDOR", "GL_RENDERER", "GL_VERSION", "GL_SHADING_LANGUAGE_VERSION", "Operating System", "Submitted by");
+							if (!in_array($captions[$i], $headerFields)) {
+								$className = ($minval < $maxval) ? "" : "class='sameCaps'";
+							} else {
+								$className = "";
+							}
+							echo "<tr $add $className>\n";
+							echo "<td $fontStyle>". $captions[$i] ."</td>\n";									
+							
+							// Values
+							for ($j = 0, $subarrsize = sizeof($column); $j < $subarrsize; ++$j) {	 
+								$fontstyle = '';
+								if ($captions[$i] == 'GL_RENDERER') {					
+									echo "<td class='valuezeroleftblack'>".shorten($column[$j][$i], 32)."</td>";
+								} else {
+									if (is_numeric($column[$j][$i]) ) {
+										
+										if ($column[$j][$i] < $maxval) {
+											$fontstyle = "style='color:#FF0000;'";
+										}
+										
+										if ($captions[$i] == 'GL_SHADING_LANGUAGE_VERSION') {
+											echo "<td>".number_format($column[$j][$i], 2, '.', ',')."</td>";
+											} else {
+											echo "<td $fontstyle>".number_format($column[$j][$i], 0, '.', ',')."</td>";
+										}
+										} else {
+										echo "<td>".$column[$j][$i]."</td>";
+									}
+								}
+							} 
+							echo "</tr>\n";
+							$index++;
+						}	   
 							
 						}
 						else {	  
@@ -213,24 +210,24 @@
 				<tbody>
 					<?php	
 						// Gather all extensions supported by at least one of the reports
-						$str = "SELECT DISTINCT Name FROM openglgpuandext LEFT JOIN openglextensions ON openglextensions.PK = openglgpuandext.ExtensionID WHERE openglgpuandext.ReportID IN ($repids)  ORDER BY FIELD(SUBSTR(openglextensions.Name, 1, 3), 'GL_') DESC, FIELD(SUBSTR(openglextensions.Name, INSTR(openglextensions.Name, '_')+1, 3), 'EXT', 'ARB') DESC, openglextensions.Name ASC";	
-						$sqlresult = mysql_query($str); 
-						$extcaption = array(); // Captions (for all gathered extensions)   
-						
-						while($row = mysql_fetch_row($sqlresult)) {	
+						$str = "";	
+						$extcaption = array();						
+						$stmnt = DB::$connection->prepare("SELECT DISTINCT Name FROM openglgpuandext LEFT JOIN openglextensions ON openglextensions.PK = openglgpuandext.ExtensionID WHERE openglgpuandext.ReportID IN ($repids)  ORDER BY FIELD(SUBSTR(openglextensions.Name, 1, 3), 'GL_') DESC, FIELD(SUBSTR(openglextensions.Name, INSTR(openglextensions.Name, '_')+1, 3), 'EXT', 'ARB') DESC, openglextensions.Name ASC");
+						$stmnt->execute();
+						while($row = $stmnt->fetch(PDO::FETCH_NUM)) {	
 							foreach ($row as $data) {
 								$extcaption[] = $data;	  
 							}
 						}
 						
 						// Get extensions for each selected report into an array 
-						$extarray = array(); 
-						
+						$extarray = array(); 				
 						foreach ($reportids as $repid) {
-							$str = "SELECT Name FROM openglgpuandext LEFT JOIN openglextensions ON openglextensions.PK = openglgpuandext.ExtensionID WHERE openglgpuandext.ReportID = $repid";			
-							$sqlresult = mysql_query($str); 
+							$stmnt = DB::$connection->prepare("SELECT Name FROM openglgpuandext LEFT JOIN openglextensions ON openglextensions.PK = openglgpuandext.ExtensionID WHERE openglgpuandext.ReportID = :reportid");
+							$stmnt->execute(["reportid" => $repid]);	
+							$str = " = $repid";			
 							$subarray = array();
-							while($row = mysql_fetch_row($sqlresult)) {	
+							while($row = $stmnt->fetch(PDO::FETCH_NUM)) {	
 								foreach ($row as $data) {
 									$subarray[] = $data;	  
 								}
@@ -301,16 +298,12 @@
 				<tbody>
 					<?php									
 						// Gather all compressed formats supported by at least one of the reports
-						$str = "SELECT 
-							DISTINCT text FROM compressedTextureFormats ctf LEFT JOIN enumTranslationTable ett ON ctf.formatEnum = ett.enum
-						WHERE 
-							ctf.ReportID IN ($repids)  
-						ORDER 
-							BY text ASC";	
-						$sqlresult = mysql_query($str); 
-						$formatcaptions = array();
-						
-						while($row = mysql_fetch_row($sqlresult)) {	
+						$stmnt = DB::$connection->prepare(
+							"SELECT DISTINCT text FROM compressedTextureFormats ctf LEFT JOIN enumTranslationTable ett ON ctf.formatEnum = ett.enum WHERE ctf.ReportID IN ($repids) ORDER BY text ASC"
+						);
+						$stmnt->execute();
+						$formatcaptions = array();					
+						while($row = $stmnt->fetch(PDO::FETCH_NUM)) {	
 							foreach ($row as $data)	{
 								$formatcaptions[] = $data;	  
 							}
@@ -319,13 +312,12 @@
 						$formatarray = array(); 
 						
 						foreach ($reportids as $repid) {
-							$str = "SELECT 
-								DISTINCT text FROM compressedTextureFormats ctf LEFT JOIN enumTranslationTable ett ON ctf.formatEnum = ett.enum
-							WHERE 
-								ctf.ReportID = $repid";			
-							$sqlresult = mysql_query($str); 
+							$stmnt = DB::$connection->prepare(
+								"SELECT DISTINCT text FROM compressedTextureFormats ctf LEFT JOIN enumTranslationTable ett ON ctf.formatEnum = ett.enum WHERE ctf.ReportID = :reportid"
+							);
+							$stmnt->execute(["reportid" => $repid]);	
 							$subarray = array();
-							while($row = mysql_fetch_row($sqlresult)) {	
+							while($row = $stmnt->fetch(PDO::FETCH_NUM)) {	
 								foreach ($row as $data) {
 									$subarray[] = $data;	  
 								}
@@ -384,7 +376,7 @@
 	</div>
 
 <?php	
-	dbDisconnect();
+	DB::disconnect();
 	include 'footer.html';
 ?>
 	
