@@ -3,7 +3,7 @@
 		*
 		* OpenGL hardware capability database server implementation
 		*	
-		* Copyright (C) 2011-2015 by Sascha Willems (www.saschawillems.de)
+		* Copyright (C) 2011-2018 by Sascha Willems (www.saschawillems.de)
 		*	
 		* This code is free software, you can redistribute it and/or
 		* modify it under the terms of the GNU Affero General Public
@@ -62,121 +62,151 @@
 	}
 	
 	// Connect to DB 
-	include './../gl_config.php';
-	dbConnect();			
+	include '../dbconfig.php';
+	DB::connect();			
+	DB::$connection->beginTransaction();
 	
-	// * Check if report already exists in database first
-	$sqlstr = "SELECT * FROM openglcaps WHERE description = '$description'";
-	$sqlresult = mysql_query($sqlstr);
-	
-	if (mysql_num_rows($sqlresult) > 0) {
-		echo "res_duplicate";	  
-		exit();	  
-	}
-	
-	// * Generate INSERT selection
-	//  Value selection
-	$selectionstr = "INSERT INTO openglcaps (";
-	$selectionstr .= "description, appversion, fileversion, submitter, os, contexttype, comment, "; 
-	//  Gather caps
-	$xmlnode = $nodes->item(0)->getElementsByTagName('caps'); 
-	$caparray = array();
-	foreach ($xmlnode->item(0)->childNodes as $capnode) 
-	{
-		if ($capnode->nodeName == "#text") {continue;} 	  
-		$caparray[] = "`".$capnode->getAttribute("id")."`";
-	}
-	
-	$selectionstr .= implode(", ", $caparray) .")"; 
-	// Values
-	$valuestr  = "VALUES (";
-	$xmlnode   = $nodes->item(0)->getElementsByTagName("description"); 
-	$description = $xmlnode->item(0)->textContent; 
-	$valuestr .= '"'.mysql_real_escape_string($xmlnode->item(0)->textContent).'"'.", ";
-	
-	$xmlnode   = $nodes->item(0)->getElementsByTagName("appversion"); 
-	$valuestr .= '"'.$xmlnode->item(0)->textContent .'"'.", ";
-	
-	$xmlnode   = $nodes->item(0)->getElementsByTagName("fileversion"); 
-	$valuestr .= '"'.$xmlnode->item(0)->textContent .'"'.", ";
-	
-	$xmlnode   = $nodes->item(0)->getElementsByTagName("submitter"); 
-	$valuestr .= '"'.mysql_real_escape_string($xmlnode->item(0)->textContent).'"'.", ";
-
-	$xmlnode   = $nodes->item(0)->getElementsByTagName("os"); 
-	$valuestr .= '"'.mysql_real_escape_string($xmlnode->item(0)->textContent).'"'.", ";
-	
-	$xmlnode   = $nodes->item(0)->getElementsByTagName("contexttype"); 
-	if ($xmlnode->length==0) { 
-		$valuestr .= '"default"'.", ";
-		} else {
-		$valuestr .= '"'.$xmlnode->item(0)->textContent .'"'.", ";
-	}	
-	
-	$xmlnode   = $nodes->item(0)->getElementsByTagName("comment"); 
-	$valuestr .= '"'.$xmlnode->item(0)->textContent .'"'.", ";		
-	
-	// Gather caps
-	$xmlnode = $nodes->item(0)->getElementsByTagName("caps"); 
-	$caparray = array();
-	foreach ($xmlnode->item(0)->childNodes as $capnode) 
-	{
-		if ($capnode->nodeName == "#text") {continue;} 	  
-		if ($capnode->nodeValue == "n/a") 
-		{
-			$caparray[] = 'NULL';
-		} 
-		else 
-		{
-			$caparray[] = '"'.trim($capnode->nodeValue).'"';
+	// Check if report already exists in database first
+	try {	
+		$stmnt = DB::$connection->prepare("SELECT * FROM openglcaps WHERE description = :description");
+		$stmnt->execute(["description" => $description]);
+		if ($stmnt->rowCount() > 0) {
+			echo "res_duplicate";	  
+			exit();	  
 		}
-	}
-	$valuestr .= implode(",", $caparray) .")";  
-	$valuestr = str_replace("\"n/a\"", "NULL", $valuestr);
-	$sql = $selectionstr ." ". $valuestr;
-	
-	$sqlresult = mysql_query($sql) or die(mysql_error());
-	
-	// Extension names into separate DB
-	$xmlnode = $nodes->item(0)->getElementsByTagName("extension"); 
-	$extarray = array();
-	
-	foreach ($nodes->item(0)->getElementsByTagName("extension") as $capnode) {
-		$extarray[] = '("'.$capnode->textContent.'")';
+	} catch (PDOException $e) {
+		die('Error while trying to upload report');
 	}
 	
-	$sqlstr = "INSERT IGNORE INTO openglextensions (Name) VALUES " .implode(", ", $extarray);
-	$sqlresult = mysql_query($sqlstr) or die(mysql_error());
-	
-	// Put supported extensions into third table
-	$sqlstr = "SELECT ReportID FROM openglcaps WHERE description='$description'";   
-	$sqlresult = mysql_query($sqlstr) or die(mysql_error());
-	
-	$sqlrow = mysql_fetch_assoc($sqlresult);
-	$reportID = $sqlrow["ReportID"];
-	
-	$xmlnode = $nodes->item(0)->getElementsByTagName("extension"); 
-	$extarray = array();
-	
-	foreach ($nodes->item(0)->getElementsByTagName("extension") as $capnode) {
-		$extarray[] = '"'.$capnode->textContent.'"';
-	}
-	
-	$sqlstr = "INSERT INTO openglgpuandext SELECT $reportID AS ReportID, PK AS ExtensionID FROM openglextensions WHERE Name IN (".implode(", ", $extarray).")"; 
-	$sqlresult = mysql_query($sqlstr) or die(mysql_error()); 
-	
-	// Compressed texture formats
-	foreach ($nodes->item(0)->getElementsByTagName("compressedtextureformat") as $formatNode) {
-		$formatEnum = $formatNode->textContent; 
-		mysql_query("insert ignore into compressedTextureFormats (reportId, formatEnum) values ($reportID, $formatEnum)") or die(mysql_error());
+	/*
+		Capabilities
+	*/
+	{
+		$selectionstr = "INSERT INTO openglcaps (";
+		$selectionstr .= "description, appversion, fileversion, submitter, os, contexttype, comment, "; 
+		$xmlnode = $nodes->item(0)->getElementsByTagName('caps'); 
+		$caparray = array();
+		foreach ($xmlnode->item(0)->childNodes as $capnode) {
+			if ($capnode->nodeName == "#text") {continue;} 	  
+			$caparray[] = "`".$capnode->getAttribute("id")."`";
+		}
+		
+		$selectionstr .= implode(", ", $caparray) .")"; 
+		// Values
+		$valuestr  = "VALUES (";
+		$xmlnode   = $nodes->item(0)->getElementsByTagName("description"); 
+		$description = $xmlnode->item(0)->textContent; 
+		$valuestr .= '"'.($xmlnode->item(0)->textContent).'"'.", ";
+		
+		$xmlnode   = $nodes->item(0)->getElementsByTagName("appversion"); 
+		$valuestr .= '"'.$xmlnode->item(0)->textContent .'"'.", ";
+		
+		$xmlnode   = $nodes->item(0)->getElementsByTagName("fileversion"); 
+		$valuestr .= '"'.$xmlnode->item(0)->textContent .'"'.", ";
+		
+		$xmlnode   = $nodes->item(0)->getElementsByTagName("submitter"); 
+		$valuestr .= '"'.($xmlnode->item(0)->textContent).'"'.", ";
+
+		$xmlnode   = $nodes->item(0)->getElementsByTagName("os"); 
+		$valuestr .= '"'.($xmlnode->item(0)->textContent).'"'.", ";
+		
+		$xmlnode   = $nodes->item(0)->getElementsByTagName("contexttype"); 
+		if ($xmlnode->length==0) { 
+			$valuestr .= '"default"'.", ";
+			} else {
+			$valuestr .= '"'.$xmlnode->item(0)->textContent .'"'.", ";
+		}	
+		
+		$xmlnode   = $nodes->item(0)->getElementsByTagName("comment"); 
+		$valuestr .= '"'.$xmlnode->item(0)->textContent .'"'.", ";		
+		
+		$xmlnode = $nodes->item(0)->getElementsByTagName("caps"); 
+		$caparray = array();
+		foreach ($xmlnode->item(0)->childNodes as $capnode) {
+			if ($capnode->nodeName == "#text") {continue;} 	  
+			if ($capnode->nodeValue == "n/a") {
+				$caparray[] = 'NULL';
+			} else {
+				$caparray[] = '"'.trim($capnode->nodeValue).'"';
+			}
+		}
+		$valuestr .= implode(",", $caparray) .")";  
+		$valuestr = str_replace("\"n/a\"", "NULL", $valuestr);
+		$sql = $selectionstr ." ". $valuestr;
+		
+		try {	
+			$stmnt = DB::$connection->prepare($sql);
+			$stmnt->execute();
+		} catch (PDOException $e) {
+			die('Error while trying to upload report');
+		}
 	}	
+
+	/*
+		Extensions
+	*/
+	{
+		$xmlnode = $nodes->item(0)->getElementsByTagName("extension"); 
+		$extarray = array();		
+		foreach ($nodes->item(0)->getElementsByTagName("extension") as $capnode) {
+			$extarray[] = '("'.$capnode->textContent.'")';
+		}
+		
+		try {	
+			$stmnt = DB::$connection->prepare("INSERT IGNORE INTO openglextensions (Name) VALUES " .implode(", ", $extarray));
+			$stmnt->execute();
+		} catch (PDOException $e) {
+			die('Error while trying to upload report');
+		}
+
+		try {	
+			$stmnt = DB::$connection->prepare("SELECT ReportID FROM openglcaps WHERE description= :description");
+			$stmnt->execute(["description" => $description]);
+			$row = $stmnt->fetch(PDO::FETCH_ASSOC);
+			$reportID = $row["ReportID"];
+		} catch (PDOException $e) {
+			die('Error while trying to upload report');
+		}
+		
+		$xmlnode = $nodes->item(0)->getElementsByTagName("extension"); 
+		$extarray = array();
+		
+		foreach ($nodes->item(0)->getElementsByTagName("extension") as $capnode) {
+			$extarray[] = '"'.$capnode->textContent.'"';
+		}
+
+		try {	
+			$stmnt = DB::$connection->prepare("INSERT INTO openglgpuandext SELECT $reportID AS ReportID, PK AS ExtensionID FROM openglextensions WHERE Name IN (".implode(", ", $extarray).")");
+			$stmnt->execute();
+		} catch (PDOException $e) {
+			die('Error while trying to upload report');
+		}	
+	}
 	
-	echo "res_uploaded";	  
+	/* 
+		Compressed texture formats
+	*/
+	{
+		try {	
+			foreach ($nodes->item(0)->getElementsByTagName("compressedtextureformat") as $formatNode) {
+				$formatEnum = $formatNode->textContent; 
+				$stmnt = DB::$connection->prepare("INSERT ignore into compressedTextureFormats (reportId, formatEnum) values (:reportid, :formatenum)");
+				$stmnt->execute(['reportid' => $reportID, 'formatenum' => $formatEnum]);
+			}	
+		} catch (PDOException $e) {
+			die('Error while trying to upload report');
+		}	
+	}
+
+	DB::$connection->commit();
+
+	echo "res_uploaded";	  	
 	
-	$msg = "New hardware report added to the database\n";
+	$msgtitle = "New OpenGL report for ".$description;
+	$msg = "New OpenGL report added to the database\n";
 	$msg .= "Description : $description\n";
-	$msg .= "Link : http://opengl.gpuinfo.org/gl_generatereport.php?reportID=$reportID";
-	mail('webmaster@delphigl.de', 'New OpenGL report uploaded', $msg); 
+	$msg .= "Link : https://opengl.gpuinfo.org/displayreport.php?id=$reportID";
+	mail($mailto, $msgtitle, $msg); 
 	
-	dbDisconnect();	 
+	DB::disconnect();	 
 ?>

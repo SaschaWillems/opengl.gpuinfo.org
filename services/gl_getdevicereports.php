@@ -3,7 +3,7 @@
 	*
 	* OpenGL hardware capability database server implementation
 	*	
-	* Copyright (C) 2011-2015 by Sascha Willems (www.saschawillems.de)
+	* Copyright (C) 2011-2018 by Sascha Willems (www.saschawillems.de)
 	*	
 	* This code is free software, you can redistribute it and/or
 	* modify it under the terms of the GNU Affero General Public
@@ -18,22 +18,26 @@
 	* PURPOSE.  See the GNU AGPL 3.0 for more details.		
 	*
 	*/
-	
-	include './../gl_config.php';
-	
-	dbConnect();	
-	
-	// Fetches all available reports for the given device and returns them as xml
-			
-	$glrenderer = mysql_real_escape_string($_GET['glrenderer']);	
-		
-	$sqlresult = mysql_query("select reportid, GL_VERSION, os from openglcaps where GL_RENDERER = '$glrenderer' order by GL_VERSION desc");
 
-	echo "<reports>";	
-	while($row = mysql_fetch_row($sqlresult)) {
-		echo "<report id='$row[0]' os='$row[2]'>$row[1]</report>";
+	include '../dbconfig.php';
+
+	if (!isset($_GET['glrenderer'])) {
+		header('HTTP/ 400 bad request');
+		echo 'No renderer specified';
 	}
-	echo "</reports>";
-		
-	dbDisconnect();	 		
+	$glrenderer = $_GET['glrenderer'];
+
+	DB::connect();				
+	try {	
+		$stmnt = DB::$connection->prepare("SELECT reportid, GL_VERSION, os from openglcaps where GL_RENDERER = :glrenderer order by GL_VERSION desc");
+		$stmnt->execute(["glrenderer" => $glrenderer]);
+		echo "<reports>";	
+		while($row = $stmnt->fetch(PDO::FETCH_NUM)) {
+			echo "<report id='$row[0]' os='$row[2]'>$row[1]</report>";
+		}
+		echo "</reports>";	} catch (PDOException $e) {
+		header('HTTP/ 500 server error');
+		echo 'Server error: Could not get report list!';
+	}
+	DB::disconnect();				
 ?>

@@ -3,7 +3,7 @@
 	*
 	* OpenGL hardware capability database server implementation
 	*	
-	* Copyright (C) 2011-2015 by Sascha Willems (www.saschawillems.de)
+	* Copyright (C) 2011-2018 by Sascha Willems (www.saschawillems.de)
 	*	
 	* This code is free software, you can redistribute it and/or
 	* modify it under the terms of the GNU Affero General Public
@@ -21,7 +21,7 @@
 	
 	// Updates the given report with new data from xml
 	
-	include './../gl_config.php';
+	include '../dbconfig.php';
 	
 	// Check for valid file
 	$path='./';
@@ -45,7 +45,7 @@
 
 	move_uploaded_file($_FILES['data']['tmp_name'], $path.'update_'.$_FILES['data']['name']) or die(''); 
 
-	dbConnect();	
+	DB::connect();
 
 	// Try to parse XML into database
 	$dom = new DomDocument();
@@ -56,15 +56,17 @@
 	$description = $xmlnode->item(0)->textContent; 
 
 	// Find report
-	$sqlResult = mysql_query("SELECT ReportID FROM openglcaps WHERE description='$description'");
-	$sqlRow = mysql_fetch_row($sqlResult);
-	$reportId = $sqlRow[0];	
-	
-	if ($reportId == "") 
-	{
-		echo "No report to update! Wrong Id?";
-		mysql_close();	 
-		die();
+	try {	
+		$stmnt = DB::$connection->prepare("SELECT * FROM openglcaps WHERE description = :description");
+		$stmnt->execute(["description" => $description]);
+		$row = $stmnt->fetch(PDO::FETCH_ASSOC);
+		$reportId = $row["ReportID"];
+	} catch (PDOException $e) {
+		die('Error while trying to update report');
+	}
+
+	if ($reportId == "") {
+		die("No report to update! Wrong Id?");
 	}
 		
 	$submitter = $nodes->item(0)->getElementsByTagName("submitter")->item(0)->textContent;
@@ -75,53 +77,60 @@
 	$xmlnode = $nodes->item(0)->getElementsByTagName('caps'); 
 	$capsUpdated = array();
 	$capsNewValue = array();
-	foreach ($xmlnode->item(0)->childNodes as $capnode) 
-	{	
+	foreach ($xmlnode->item(0)->childNodes as $capnode) {	
 		if ($capnode->nodeName == "#text") {continue;} 	  
 		$capid = $capnode->getAttribute("id");
 		$capvalue = $capnode->nodeValue;
 		if (strpos($capid, 'GL_') !== false) 
 		{
 			// Only null values
-			$sqlResultCap = mysql_query("SELECT `".$capid."` FROM openglcaps WHERE reportID = $reportId") or die(mysql_error());
-			$sqlRow = mysql_fetch_row($sqlResultCap);
-			if ((is_null($sqlRow[0])) && (strpos($capvalue, 'n/a') == false)) 
-			{
-				$capsUpdated[] = $capid;
-				$capsNewValue[] = trim($capvalue);
-			}
+			try {	
+				$stmnt = DB::$connection->prepare("SELECT `".$capid."` FROM openglcaps WHERE reportID = :reportid");
+				$stmnt->execute(["reportid" => $reportId]);
+				$row = $stmnt->fetch(PDO::FETCH_NUM);
+				if ((is_null($sqlRow[0])) && (strpos($capvalue, 'n/a') == false)) {
+					$capsUpdated[] = $capid;
+					$capsNewValue[] = trim($capvalue);
+				}	
+			} catch (PDOException $e) {
+				die('Error while trying to update report');
+			}	
 		}
 	}	
 	
 	// Updated
-	for ($i=0; $i<sizeof($capsUpdated); $i++) 
-	{
+	for ($i=0; $i<sizeof($capsUpdated); $i++) {
 		$capName = $capsUpdated[$i];
 		$capValue = $capsNewValue[$i]; 
-		$sqlStr = "UPDATE openglcaps SET `$capName` = '$capValue' WHERE reportId = $reportId";
-		$sqlResult = mysql_query($sqlStr) or die(mysql_error()); 
+		try {	
+			$stmnt = DB::$connection->prepare("UPDATE openglcaps SET `$capName` = :capvalue WHERE reportID = :reportid");
+			$stmnt->execute(["reportid" => $reportId, "capvalue" => $capValue]);
+		} catch (PDOException $e) {
+			die('Error while trying to update report');
+		}	
 	}
 	
 	// Generate history entry
-	if (sizeof($capsUpdated) > 0) 
-	{
+	if (sizeof($capsUpdated) > 0) {
 		$log = "Updated fields :<br>";
-		for ($i=0; $i<sizeof($capsUpdated); $i++) 
-		{
+		for ($i=0; $i<sizeof($capsUpdated); $i++) {
 			$log .= $capsUpdated[$i] . " = " . $capsNewValue[$i] . "<br>";
 		}
 	}
 	
 	// Compressed texture format
 	$formatsInserted = array();
-	foreach ($nodes->item(0)->getElementsByTagName("compressedtextureformat") as $formatNode) 
-	{
+	foreach ($nodes->item(0)->getElementsByTagName("compressedtextureformat") as $formatNode) {
 		$formatEnum = $formatNode->textContent; 
-		mysql_query("insert ignore into compressedTextureFormats (reportId, formatEnum) values ($reportId, $formatEnum)") or die(mysql_error());
-		if (mysql_affected_rows() > 0) 
-		{
-			$formatsInserted[] = $formatNode->textContent;
-		}
+		try {	
+			$stmnt = DB::$connection->prepare("INSERT ignore into compressedTextureFormats (reportId, formatEnum) values (:reportid, :formatenum)");
+			$stmnt->execute(["reportid" => $reportId, "formatenum" => $formatEnum]);
+			if ($stmnt->rowCount() > 0) {
+				$formatsInserted[] = $formatNode->textContent;
+			}
+		} catch (PDOException $e) {
+			die('Error while trying to update report');
+		}	
 	}
 	
 	// Generate history entry
@@ -129,52 +138,18 @@
 		$log .= "Inserted compressed texture formats :<br>";
 		$log .= implode("<br>", $formatsInserted);
 	}
-	
-	// Internal format query information
-	/*
-	$xml = simplexml_load_file($path.'update_'.$_FILES['data']['name']);
-
-	foreach ($xml->internalformatinformation->target as $target) {
-		// Insert texture target if not already present
-		$sqlStr = "insert ignore into intFormatTargets (name) values('".$target['name']."')";
-		mysql_query($sqlStr) or die(mysql_error());	
-		// Get id
-		$sqlRes = mysql_query("select id from intFormatTargets where name = '".$target['name']."'");
-		$sqlRow = mysql_fetch_row($sqlRes) or die (mysql_error());
-		$targetId = $sqlRow[0];
-		
-		// Insert target format info
-		foreach ($target->format as $format) {
-			$supported = ($format['supported'] == "true") ? 1 : 0;
-			$sqlStr  = "insert ignore into intFormats (reportId, targetId, name, supported) values";
-			$sqlStr .= "($reportId, $targetId, '".$format['name']."', '".$supported."')";
-			mysql_query($sqlStr) or die(mysql_error());			
-			// Get id
-			$sqlRes = mysql_query("select formatid from intFormats where reportId = $reportId and targetId = $targetId and name = '".$format['name']."'");
-			$sqlRow = mysql_fetch_row($sqlRes) or die (mysql_error());
-			$formatId = $sqlRow[0];
 			
-			// Insert internal format properties
-			if ($supported == 1) {
-				foreach ($format->value as $value) {
-					$sqlStr  = "insert ignore into intFormatProps (intFormatId, name, value) values";
-					$sqlStr .= "($formatId, '".$value['name']."', ".$value.")";
-					mysql_query($sqlStr) or die(mysql_error());							
-				}
-			}
-			
-		}
-		
-	}
-	*/
-		
 	$msg = "http://opengl.gpuinfo.org/gl_generatereport.php?reportID=$reportId\n\nSubmitter : $submitter\n\nLog : $log";
-	mail('webmaster@delphigl.de', 'Report updated', $msg); 
+	mail($mailto, 'Report updated', $msg); 
 	
-	$sqlStr = "INSERT INTO reportHistory (reportId, submitter, log) VALUES($reportId, '$submitter', '$log');";
-	$sqlResult = mysql_query($sqlStr) or die(mysql_error());	
+	try {	
+		$stmnt = DB::$connection->prepare("INSERT INTO reportHistory (reportId, submitter, log) VALUES(:reportid, :submitter, :log);");
+		$stmnt->execute(["reportid" => $reportId, "submitter" => $submitter, "log" => $log]);
+	} catch (PDOException $e) {
+		die('Error while trying to update report');
+	}	
 	
-	// Return message to be display in app	
+	// Return message to be displayed in app	
 	if (sizeof($capsUpdated) > 0) {
 		echo sizeof($capsUpdated), " capabilities have been added.\n\n";
 	};
@@ -185,7 +160,6 @@
 	if ( (sizeof($capsUpdated) > 0) || (sizeof($formatsInserted) > 0) ) {
 		echo "See the report history for details.\n\nThank you for your contribution!";
 	}
-	
-	
-	dbDisconnect();	 
+		
+	DB::disconnect();	 
 ?>

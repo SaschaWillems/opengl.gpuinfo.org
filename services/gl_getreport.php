@@ -3,7 +3,7 @@
 	*
 	* OpenGL hardware capability database server implementation
 	*	
-	* Copyright (C) 2011-2015 by Sascha Willems (www.saschawillems.de)
+	* Copyright (C) 2011-2018 by Sascha Willems (www.saschawillems.de)
 	*	
 	* This code is free software, you can redistribute it and/or
 	* modify it under the terms of the GNU Affero General Public
@@ -19,29 +19,28 @@
 	*
 	*/
 	
-	include './../gl_config.php';
+	include '../dbconfig.php';
 	
-	dbConnect();	
+	DB::connect();
 	
 	// Fetches report data for the given device
 		
-	$reportId = mysql_real_escape_string($_GET['reportId']);	
-	$sqlresult = mysql_query("select * from openglcaps where reportId = $reportId");
+	$reportId = (int)$_GET['reportId'];	
 	echo "<report>";
 
 	// Implementation details and capabilities
-	echo "<implementation>";	
 	$skipfields = array("ReportID", "description", "appversion", "fileversion", "submitter", "extensions", "submissiondate", "note", "contexttype", "os");
 	$colindex  = 0;    
-	while($row = mysql_fetch_row($sqlresult))
-	{
-		foreach ($row as $data) 
-		{
-			$fieldname = mysql_field_name($sqlresult, $colindex);		  
+	$stmnt = DB::$connection->prepare("SELECT * from openglcaps where reportId = :reportid");
+	$stmnt->execute(["reportid" => $reportId]);
+	echo "<implementation>";	
+	while($row = $stmnt->fetch(PDO::FETCH_NUM)) {
+		foreach ($row as $data) {
+			$meta = $stmnt->getColumnMeta($colindex);
+			$fieldname = $meta["name"];  	
 			$fieldvalue = trim($data);
 			// Skip fields that are not supposed to be shwon in glCapsViewer
-			if (!in_array($fieldname, $skipfields)) 
-			{
+			if (!in_array($fieldname, $skipfields)) {
 				echo "<cap id=\"$fieldname\">$fieldvalue</cap>";
 			}
 			$colindex++;
@@ -50,10 +49,10 @@
 	echo "</implementation>";
 
 	// Extensions
+	$stmnt = DB::$connection->prepare("SELECT Name FROM openglgpuandext LEFT JOIN openglextensions ON openglextensions.PK = openglgpuandext.ExtensionID WHERE openglgpuandext.ReportID = :reportid ORDER BY FIELD(SUBSTR(openglextensions.Name, 1, 3), 'GL_') DESC, FIELD(SUBSTR(openglextensions.Name, INSTR(openglextensions.Name, '_')+1, 3), 'EXT', 'ARB') DESC, openglextensions.Name ASC");
+	$stmnt->execute(["reportid" => $reportId]);
 	echo "<extensions>";
-	$str = "SELECT Name FROM openglgpuandext LEFT JOIN openglextensions ON openglextensions.PK = openglgpuandext.ExtensionID WHERE openglgpuandext.ReportID = $reportId ORDER BY FIELD(SUBSTR(openglextensions.Name, 1, 3), 'GL_') DESC, FIELD(SUBSTR(openglextensions.Name, INSTR(openglextensions.Name, '_')+1, 3), 'EXT', 'ARB') DESC, openglextensions.Name ASC";  
-	$sqlresult = mysql_query($str);  
-	while($row = mysql_fetch_row($sqlresult)) {	
+	while($row = $stmnt->fetch(PDO::FETCH_NUM)) {
 		foreach ($row as $data) {
 			echo "<extension>$data</extension>";
 		}
@@ -61,17 +60,17 @@
 	echo "</extensions>";
 	
 	// Compressed texture formats
-	$sqlresult = mysql_query("select formatEnum from compressedTextureFormats where reportId = $reportId");
+	$stmnt = DB::$connection->prepare("SELECT formatEnum from compressedTextureFormats where reportId = :reportid");
+	$stmnt->execute(["reportid" => $reportId]);
 	echo "<compressedtextureformats>";
-	while($row = mysql_fetch_row($sqlresult)) {	
+	while($row = $stmnt->fetch(PDO::FETCH_NUM)) {
 		foreach ($row as $data) {
 			echo "<format>$data</format>";
 		}
 	}	 	
 	echo "</compressedtextureformats>";
-	
-		
+			
 	echo "</report>";
 		
-	dbDisconnect();	 		
+	DB::disconnect();	 		
 ?>
