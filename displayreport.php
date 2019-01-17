@@ -87,14 +87,14 @@
 										echo "<tr><td>Submitted by</td>";
 										echo "<td><a href='./listreports.php?submitter=$data'>$data</a>$submissionDate</td></tr>";
 										
-										$stmntHistory = DB::$connection->prepare("SELECT date,submitter from reportHistory WHERE ReportID = :reportid");
+										$stmntHistory = DB::$connection->prepare("SELECT date,submitter from reportHistory WHERE ReportID = :reportid order by date desc");
 										$stmntHistory->execute(["reportid" => $reportID]);				
 										$historyCount = $stmntHistory->rowCount();
 										$historyRow = $stmntHistory->fetch(PDO::FETCH_NUM);
 										if ($historyCount > 0) {
 											$index++;
 											echo "<tr><td>Last update</td>";
-											echo "<td><a href='./listreports.php?submitter=$historyRow[1]'>$historyRow[1]</a> ($historyRow[0])</td></tr>";
+											echo "<td>$historyRow[1] ($historyRow[0])</td></tr>";
 										}					
 									}
 								}
