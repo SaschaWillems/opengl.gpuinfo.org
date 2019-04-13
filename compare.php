@@ -50,6 +50,10 @@
 		$reportids = array();
 		$reportlimit = false;
 		
+		if (empty($_REQUEST['id'])) {
+			die("<div style='padding-top: 15px;'><b>Note : </b>No reports selected to compare.</div>");
+		}
+
 		foreach ($_REQUEST['id'] as $k => $v) {
 			$reportids[] = (int)$k;	
 			if (count($reportids) > 7) {
@@ -59,6 +63,10 @@
 		}   
 			
 		if ($reportlimit) {echo "<b>Note : </b>You selected more than 8 reports to compare, only displaying the first 8 selected reports.\n"; }	
+
+		if (empty($reportids)) {
+			die("<div style='padding-top: 15px;'><b>Note : </b>No reports selected to compare.</div>");
+		}
 
 		$repids = implode(",", $reportids);   
 
@@ -70,7 +78,7 @@
 			</label>
 		</div>				
 		<?php
-		
+
 		sort($reportids, SORT_NUMERIC);
 		
 		$colspan = count($reportids) + 1;				
