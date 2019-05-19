@@ -198,6 +198,21 @@
 		}	
 	}
 
+	/* 
+		SPIR-V extensions
+	*/
+	{
+		try {	
+			foreach ($nodes->item(0)->getElementsByTagName("spirvextension") as $extnode) {
+				$ext = $extnode->textContent; 
+				$stmnt = DB::$connection->prepare("INSERT ignore into spirvextensions (reportId, name) values (:reportid, :name)");
+				$stmnt->execute(['reportid' => $reportID, 'name' => $ext]);
+			}	
+		} catch (PDOException $e) {
+			die('Error while trying to upload report');
+		}	
+	}
+
 	DB::$connection->commit();
 
 	echo "res_uploaded";	  	
