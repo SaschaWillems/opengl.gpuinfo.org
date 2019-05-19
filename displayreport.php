@@ -28,6 +28,7 @@
 	
 	$extCount = DB::getCount("SELECT count(*) from openglgpuandext where ReportID  = :reportid", [':reportid' => $reportID]);
 	$compressedCount = DB::getCount("SELECT count(*) from compressedTextureFormats where reportid = :reportid", [':reportid' => $reportID]);
+	$spirvExtCount = DB::getCount("SELECT count(*) from spirvextensions where ReportID  = :reportid", [':reportid' => $reportID]);
 		
 	$stmnt = DB::$connection->prepare("SELECT GL_RENDERER FROM openglcaps WHERE ReportID = :reportid");
 	$stmnt->execute(["reportid" => $reportID]);
@@ -44,6 +45,7 @@
 		<ul class='nav nav-tabs'>
 			<li class='active'><a data-toggle='tab' href='#tabs-1'>Implementation</a></li>
 			<li><a data-toggle='tab' href='#tabs-2'>Extensions <span class='badge'><?php echo $extCount ?></span></a></li>
+			<?php if ($spirvExtCount > 0) { echo "<li><a data-toggle='tab' href='#tabs-spirv-ext'>SPIR-V Extensions <span class='badge'>".$spirvExtCount."</span></a></li>"; } ?>
 			<li><a data-toggle='tab' href='#tabs-3'>Compressed formats <span class='badge'><?php echo $compressedCount ?></span></a></li>
 		</ul>
 	</div>
@@ -175,6 +177,36 @@
 		</tbody>
 		</table>
 	</div>
+
+	<!-- SPIR-V extensions-->
+<?php 
+	if ($spirvExtCount > 0) {
+?>
+		<div id='tabs-spirv-ext' class='tab-pane fade in reportdiv'>
+		<table id='spirvextensions' class='table table-striped table-bordered table-hover responsive' style='width:100%;'>
+			<thead>
+				<tr>
+					<td>SPIR-V extensions</td>
+				</tr>
+			</thead>
+			<tbody>
+				<?php	
+					$stmnt = DB::$connection->prepare("SELECT name FROM spirvextensions where reportid = :reportid ORDER BY name asc");
+					$stmnt->execute(["reportid" => $reportID]);
+					while($row = $stmnt->fetch(PDO::FETCH_NUM)) {	
+						foreach ($row as $data) {
+							echo "<tr><td>$data</td></tr>";
+							// echo "<tr><td><a href='./listreports.php?listreportsbyspirvextension=$data'>$data</a></td></tr>";
+						}	
+					}
+				?>
+			</tbody>
+			</table>
+		</div>		
+<?php		
+	}
+?>
+
 	
 	<!-- Compressed texture formats -->
 	<div id='tabs-3' class='tab-pane fade in reportdiv'>
@@ -213,7 +245,7 @@
 	<script>
     	$(document).ready(function() 
         {
-            var tableNames = [ "#caps", "#extensions", "#compressedformats" ];
+            var tableNames = [ "#caps", "#extensions", "#compressedformats", "#spirvextensions" ];
 	        for (var i=0; i < tableNames.length; i++) 
             {           
                 $(tableNames[i]).DataTable({
