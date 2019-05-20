@@ -70,6 +70,8 @@
 
 		$repids = implode(",", $reportids);   
 
+		$spirvExtCount = DB::getCount("SELECT count(*) from spirvextensions where ReportID in ($repids)", []);
+
 		?>
 		<div class='header'>
 			<h4 style='margin-left:10px;'>Comparing <?php echo count($reportids) ?> devices</h4>
@@ -89,6 +91,7 @@
 			<ul class='nav nav-tabs'>
 				<li class='active'><a data-toggle='tab' href='#tab-implementation'>Implementation</a></li>
 				<li><a data-toggle='tab' href='#tab-extensions'>Extensions</a></li>
+				<?php if ($spirvExtCount > 0) { echo "<li><a data-toggle='tab' href='#tabs-spirv-ext'>SPIR-V Extensions</a></li>"; } ?>
 				<li><a data-toggle='tab' href='#tab-compressed'>Compressed formats</a></li>
 			</ul>
 		</div>
@@ -294,6 +297,66 @@
 			</table>
 		</div>	
 
+		<!-- SPIR-V Extensions -->
+<?php		
+		if ($spirvExtCount > 0) {
+?>
+			<div id='tabs-spirv-ext' class='tab-pane fade reportdiv'>
+				<table id='spirv-extensions' width='100%' class='table table-striped table-bordered'>
+					<thead>
+						<tr>
+							<th>SPIR-V Extension</th>
+							<?php foreach ($reportids as $reportId) { echo "<th>Report $reportId</th>"; } ?>
+						</tr>
+					</thead>
+					<tbody>
+						<?php	
+							$stmnt = DB::$connection->prepare("SELECT DISTINCT group_concat(name) FROM spirvextensions where reportid IN ($repids) ORDER by name desc");
+							$stmnt->execute();						
+							$extcaption = explode(',', $stmnt->fetchColumn());
+							$extarray = array(); 				
+							foreach ($reportids as $repid) {
+								$stmnt = DB::$connection->prepare("SELECT group_concat(name) FROM spirvextensions where reportid = :reportid");
+								$stmnt->execute(["reportid" => $repid]);	
+								$subarray = array();
+								while ($row = $stmnt->fetchColumn()) {	
+									$subarray = explode(',', $row);
+								}
+								$extarray[] = $subarray; 
+							}						
+							$colspan = count($reportids) + 1;								
+							implementation_details($reportids);							
+							echo "<tr><td>Extension count</td>"; 
+							foreach ($extarray as $ext) {
+								echo "<td>".count($ext)."</td>";
+							}
+							echo "</tr>"; 		
+							foreach ($extcaption as $extension) {
+								$className = "same";
+								$index = 0;
+								foreach ($reportids as $repid) {
+									if (!in_array($extension, $extarray[$index])) { 
+										$className = "diff";
+										break;
+									}
+									$index++;
+								}  										
+								echo "<tr ".($className == "diff" ? "style='color:#FF0000;'" : "")." class='$className'><td>$extension</td>\n";		 
+								$index = 0;
+								foreach ($reportids as $repid) {
+									echo "<td style='margin-left:10px;'><span class='". (in_array($extension, $extarray[$index]) ? "glyphicon glyphicon-ok supported" : "glyphicon glyphicon-remove unsupported")."'></td>";
+									$index++;
+								}  
+								echo "</tr>"; 
+							}	 
+						?>					
+					</tbody>
+				</table>
+			</div>	
+<?php
+		}
+?>
+
 		<!-- Compressed formats -->
 		<div id='tab-compressed' class='tab-pane fade reportdiv'>
 			<table id='compressedformats' width='100%' class='table table-striped table-bordered table-hover'>
@@ -391,7 +454,7 @@
 <script>
 	$(document).ready(function() 
 	{
-		var tableNames = [ "#caps", "#extensions", "#compressedformats" ];
+		var tableNames = [ "#caps", "#extensions", "#compressedformats", "#spirv-extensions" ];
 		for (var i=0; i < tableNames.length; i++) 
 		{           
 			$(tableNames[i]).DataTable({
