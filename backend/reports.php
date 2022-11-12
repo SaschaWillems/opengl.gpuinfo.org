@@ -147,7 +147,7 @@
                 'id' => $device["id"], 
                 'description' => trim($device["description"]),
                 'vendor' => trim($device["vendor"]),
-                'renderer' => '<a href="displayreport.php?id='.$device["id"].'">'.trim(shorten($device["renderer"], 30)).'</a>',
+                'renderer' => '<a href="displayreport.php?id='.$device["id"].'">'.trim(shorten($device["renderer"], 45)).'</a>',
                 'version' => $gl_version,
                 'glversion' => $gl_version_int[0],
                 'glslversion' => $glsl_version_int[0],
