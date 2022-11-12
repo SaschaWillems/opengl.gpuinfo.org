@@ -3,7 +3,7 @@
 		*
 		* OpenGL hardware capability database server implementation
 		*
-		* Copyright (C) 2011-2018 by Sascha Willems (www.saschawillems.de)
+		* Copyright (C) 2011-2022 by Sascha Willems (www.saschawillems.de)
 		*
 		* This code is free software, you can redistribute it and/or
 		* modify it under the terms of the GNU Affero General Public
@@ -18,6 +18,8 @@
 		* PURPOSE.  See the GNU AGPL 3.0 for more details.
 		*
 	*/
+
+	session_start();
 
 	include 'header.html';
 
@@ -85,47 +87,61 @@
 
 <center>
 
-	<div class="tablediv">
-		<form method="get" action="compare.php?compare">
-			<table id="reports" class="table table-striped table-bordered table-hover reporttable" style='width:auto'>
-				<?php
-					if (!$defaultHeader) {
-						echo "<caption class='".$headerClass." header-span'>".$caption."</caption>";
-					}
-				?>			
-				<thead>
-					<tr>
-						<th></th>
-						<th>renderer</th>
-						<th>version</th>
-						<th>gl</th>
-						<th>glsl</th>
-						<th>context</th>
-						<th>os</th>
-						<th><input type='submit' name='compare' value='compare' class='button'></th>
-					</tr>
-					<tr>
-						<th>id</th>
-						<th>Renderer</th>
-						<th>Version</th>
-						<th>GL</th>
-						<th>GLSL</th>
-						<th>Context</th>
-						<th>OS</th>
-						<th></th>
-					</tr>
-				</thead>
-			</table>
-			<div id="errordiv" style="color:#D8000C;"></div>		
-		</form>
+	<!-- Compare block (only visible when at least one report is selected) -->
+	<div id="compare-div" class="well well-sm" role="alert" style="text-align: center; display: none; margin-bottom: 0px;">
+		<div class="compare-header">Selected reports for compare:</div>
+		<span id="compare-info"></span>
+		<div class="compare-footer">
+			<Button onClick="clearCompare()"><span class='glyphicon glyphicon-button glyphicon-erase'></span> Clear</Button>
+			<Button onClick="compare()"><span class='glyphicon glyphicon-button glyphicon-duplicate'></span> Compare</Button>
+		</div>
 	</div>
+
+	<div class="tablediv">
+		<table id="reports" class="table table-striped table-bordered table-hover reporttable" style='width:auto'>
+			<?php
+				if (!$defaultHeader) {
+					echo "<caption class='".$headerClass." header-span'>".$caption."</caption>";
+				}
+			?>			
+			<thead>
+				<tr>
+					<th></th>
+					<th>renderer</th>
+					<th>version</th>
+					<th>gl</th>
+					<th>glsl</th>
+					<th>context</th>
+					<th>os</th>
+					<th></th>
+				</tr>
+				<tr>
+					<th>id</th>
+					<th>Renderer</th>
+					<th>Version</th>
+					<th>GL</th>
+					<th>GLSL</th>
+					<th>Context</th>
+					<th>OS</th>
+					<th>Compare</th>
+				</tr>
+			</thead>
+		</table>
+		<div id="errordiv" style="color:#D8000C;"></div>		
+	</div>
+
+<script src="js/reportcompare.js"></script>
 
 <script>
 	$(document).on("keypress", "form", function(event) { 
-    return event.keyCode != 13;
+    	return event.keyCode != 13;
 	});		
 
-	$( document ).ready(function() {
+	$(document).ready(function() {
+
+		$.get(comparerUrl, null, function (response) {
+			displayCompare(response);
+		});		
 
 		var table = $('#reports').DataTable({
 			"processing": true,

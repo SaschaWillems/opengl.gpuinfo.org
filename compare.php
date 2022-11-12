@@ -3,7 +3,7 @@
 		*
 		* OpenGL hardware capability database server implementation
 		*	
-		* Copyright (C) 2011-2018 by Sascha Willems (www.saschawillems.de)
+		* Copyright (C) 2011-2022 by Sascha Willems (www.saschawillems.de)
 		*	
 		* This code is free software, you can redistribute it and/or
 		* modify it under the terms of the GNU Affero General Public
@@ -45,45 +45,58 @@
 	}
 
 	echo "<center>";
-	
-	if (isset($_GET['compare'])) {
-		$reportids = array();
-		$reportlimit = false;
-		
-		if (empty($_REQUEST['id'])) {
-			die("<div style='padding-top: 15px;'><b>Note : </b>No reports selected to compare.</div>");
-		}
 
+	$reportids = [];
+	$reportlimit = false;
+
+	if (isset($_GET['compare'])) {		
 		foreach ($_REQUEST['id'] as $k => $v) {
 			$reportids[] = (int)$k;	
-			if (count($reportids) > 7) {
-				$reportlimit = true;	 
-				break; 
-			}
-		}   
-			
-		if ($reportlimit) {echo "<b>Note : </b>You selected more than 8 reports to compare, only displaying the first 8 selected reports.\n"; }	
-
-		if (empty($reportids)) {
-			die("<div style='padding-top: 15px;'><b>Note : </b>No reports selected to compare.</div>");
 		}
+	}
 
-		$repids = implode(",", $reportids);   
+	// Compare from report list (new format)
+	// The URL contains a comma separated list of report ids dot compare
+	// e.g. compare.php/reports=100,200,900
+	if (isset($_REQUEST['reports'])) {
+		$params = explode(',', $_REQUEST['reports']);
+		foreach($params as $param) {
+			if (is_numeric($param)) {
+				$reportids[] = intval($param);
+			}
+		}
+	}
 
-		$spirvExtCount = DB::getCount("SELECT count(*) from spirvextensions where ReportID in ($repids)", []);
+	if (count($reportids) > 7) {
+		$reportlimit = true;	 
+	}
 
-		?>
-		<div class='header'>
-			<h4 style='margin-left:10px;'>Comparing <?php echo count($reportids) ?> devices</h4>
-			<label id="toggle-label" class="checkbox-inline" style="display:none;">
-				<input id="toggle-event" type="checkbox" data-toggle="toggle" data-size="small" data-onstyle="success"> Display only different values
-			</label>
-		</div>				
-		<?php
-
-		sort($reportids, SORT_NUMERIC);
+	if (empty($reportids)) {
+		die("<div style='padding-top: 15px;'><b>Note : </b>No reports selected to compare.</div>");
+	}
 		
-		$colspan = count($reportids) + 1;				
+	if ($reportlimit) {echo "<b>Note : </b>You selected more than 8 reports to compare, only displaying the first 8 selected reports.\n"; }	
+
+	if (empty($reportids)) {
+		die("<div style='padding-top: 15px;'><b>Note : </b>No reports selected to compare.</div>");
+	}
+
+	$repids = implode(",", $reportids);   
+
+	$spirvExtCount = DB::getCount("SELECT count(*) from spirvextensions where ReportID in ($repids)", []);
+
+	?>
+	<div class='header'>
+		<h4 style='margin-left:10px;'>Comparing <?php echo count($reportids) ?> devices</h4>
+		<label id="toggle-label" class="checkbox-inline" style="display:none;">
+			<input id="toggle-event" type="checkbox" data-toggle="toggle" data-size="small" data-onstyle="success"> Display only different values
+		</label>
+	</div>				
+	<?php
+
+	sort($reportids, SORT_NUMERIC);
+	
+	$colspan = count($reportids) + 1;				
 
 ?>
 		<!-- Tabs -->
@@ -198,12 +211,7 @@
 							echo "</tr>\n";
 							$index++;
 						}	   
-							
-						}
-						else {	  
-							echo "No reports to compare...";
-						}
-						
+												
 					?>	
 				</tbody>
 			</table>
