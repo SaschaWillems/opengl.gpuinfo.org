@@ -18,6 +18,8 @@
 		* PURPOSE.  See the GNU AGPL 3.0 for more details.		
 		*
 	*/
+
+	session_start();
 	
 	include 'header.html';
 	include 'dbconfig.php';
@@ -49,6 +51,7 @@
 	$reportids = [];
 	$reportlimit = false;
 
+	// Compare from report list (old format)
 	if (isset($_GET['compare'])) {		
 		foreach ($_REQUEST['id'] as $k => $v) {
 			$reportids[] = (int)$k;	
@@ -65,6 +68,7 @@
 				$reportids[] = intval($param);
 			}
 		}
+		$_SESSION['opengl_compare_reports'] = [];
 	}
 
 	if (count($reportids) > 7) {
