@@ -154,7 +154,7 @@
                 'submissiondate' => trim($device["reportdate"]),
                 'contexttype' => $contexttype,
                 'os' => $operatingsystem,
-                'compare' => '<center><input type="checkbox" name="id['.$device["id"].']"></center>'
+                'compare' => '<center><Button onClick="addToCompare('.$device['id'].',\''.trim(shorten($device["renderer"], 45)).'\')">Add</Button>'
             );
         }        
     }
