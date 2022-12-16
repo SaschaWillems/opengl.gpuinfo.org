@@ -3,7 +3,7 @@
 	*
 	* OpenGL hardware capability database server implementation
 	*	
-	* Copyright (C) 2011-2015 by Sascha Willems (www.saschawillems.de)
+	* Copyright (C) 2011-2022 by Sascha Willems (www.saschawillems.de)
 	*	
 	* This code is free software, you can redistribute it and/or
 	* modify it under the terms of the GNU Affero General Public
@@ -18,7 +18,7 @@
 	* PURPOSE.  See the GNU AGPL 3.0 for more details.		
 	*
 	*/
-	include './gl_htmlheader.inc';	
+	include './header.html';	
 ?>
 
 <div id='reportdiv'>	   
@@ -63,5 +63,9 @@
 	</div>
 </div>
 	
+<center>
+<?php include "footer.html"; ?>
+</center>
+
 </body>
 </html>
