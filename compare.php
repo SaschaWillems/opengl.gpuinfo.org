@@ -180,7 +180,7 @@
 							}								
 								
 							// Caption
-							$fontStyle = ($minval < $maxval) ? "style='color:#FF0000;'" : "";					
+							$fontStyle = '';	
 							$headerFields = array("GL_VENDOR", "GL_RENDERER", "GL_VERSION", "GL_SHADING_LANGUAGE_VERSION", "Operating System", "Submitted by");
 							if (!in_array($captions[$i], $headerFields)) {
 								$className = ($minval < $maxval) ? "" : "class='sameCaps'";
@@ -199,7 +199,7 @@
 									if (is_numeric($column[$j][$i]) ) {
 										
 										if ($column[$j][$i] < $maxval) {
-											$fontstyle = "style='color:#FF0000;'";
+											$fontstyle = "class='unsupported'";
 										}
 										
 										if ($captions[$i] == 'GL_SHADING_LANGUAGE_VERSION') {
@@ -284,10 +284,10 @@
 							}  			
 							
 							$add = '';
-							if ($missing) {
-								$add = 'color:#FF0000;';
-							}
 							$className = "same";
+							if ($missing) {
+								$className .= ' unsupported';
+							}
 							$index = 0;
 							foreach ($reportids as $repid) {
 								if (!in_array($extension, $extarray[$index])) { 
@@ -353,7 +353,7 @@
 									}
 									$index++;
 								}  										
-								echo "<tr ".($className == "diff" ? "style='color:#FF0000;'" : "")." class='$className'><td>$extension</td>\n";		 
+								echo "<tr class='$className'><td>$extension</td>\n";		 
 								$index = 0;
 								foreach ($reportids as $repid) {
 									echo "<td style='margin-left:10px;'><span class='". (in_array($extension, $extarray[$index]) ? "glyphicon glyphicon-ok supported" : "glyphicon glyphicon-remove unsupported")."'></td>";
@@ -432,7 +432,7 @@
 								$index++;
 							}  			
 							
-							$add = ($missing) ? 'color:#FF0000;' : '';
+							$add = '';
 							$className = "same";
 							$index = 0;
 							foreach ($reportids as $repid) {
