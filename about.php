@@ -18,7 +18,7 @@
 	* PURPOSE.  See the GNU AGPL 3.0 for more details.		
 	*
 	*/
-	include 'header.html';	
+	include 'header.php';	
 ?>
 
 <div id='reportdiv'>	   

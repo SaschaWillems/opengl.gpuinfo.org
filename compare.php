@@ -21,7 +21,7 @@
 
 	session_start();
 	
-	include 'header.html';
+	include 'header.php';
 	include 'dbconfig.php';
 	
 	DB::connect();	

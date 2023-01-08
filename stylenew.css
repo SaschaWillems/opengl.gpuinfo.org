@@ -25,7 +25,7 @@
 	--backgroundcolor-button-hover: rgb(228, 228, 228);
 	--textcolor-button-hover: #000;
 	--backgroundcolor-pagination-hover: #fff;
-	--textcolor-nav: rgb(232, 230, 227);	
+	--textcolor-nav: #777;
 }
 
 [data-theme='dark'] {
