@@ -1,4 +1,4 @@
- <?php
+<?php
 	/*
 		*
 		* OpenGL hardware capability database server implementation
