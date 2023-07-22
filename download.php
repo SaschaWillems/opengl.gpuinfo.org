@@ -3,7 +3,7 @@
 	*
 	* OpenGL hardware capability database server implementation
 	*	
-	* Copyright (C) 2011-2015 by Sascha Willems (www.saschawillems.de)
+	* Copyright (C) 2011-2022 by Sascha Willems (www.saschawillems.de)
 	*	
 	* This code is free software, you can redistribute it and/or
 	* modify it under the terms of the GNU Affero General Public
@@ -18,7 +18,7 @@
 	* PURPOSE.  See the GNU AGPL 3.0 for more details.		
 	*
 	*/
-	include './gl_htmlheader.inc';	
+	include './header.php';	
 ?>
 
 <div id='reportdiv'>	   
@@ -30,6 +30,18 @@
 			<div>
 				The OpenGL Hardware Capability Viewer is open source, you can always build the most recent version yourself using the sources from <a href="https://github.com/SaschaWillems/glCapsViewer">https://github.com/SaschaWillems/glCapsViewer</a>.<br>
 			</div>
+			<div class="page-header">
+				<h3>Windows</h3>
+				<ul>
+					<li><a href="downloads/glcapsviewer_1_1_windows.zip">Version 1.1 (32/64-Bit)</a></li>
+				</ul>
+			</div>
+			<div class="page-header">
+				<h3>Linux</h3>
+				<ul>
+					<li><a href="downloads/glcapsviewer_1_1_linux64.tar.gz">Version 1.1 (64-Bit)</a></li>
+				</ul>
+			</div>			
 			<div class="page-header">
 				<h3>Changelog</h3>
 				<h4>Version 1.1 - 2016-07-24</h4>
@@ -46,22 +58,13 @@
 					</li>
 				</ul>
 			</div>
-			<div class="page-header">
-				<h3>Windows</h3>
-				<ul>
-					<li><a href="downloads/glcapsviewer_1_1_windows.zip">Version 1.1 (32/64-Bit)</a></li>
-				</ul>
-			<div>
-			</div>
-			<div class="page-header">
-				<h3>Linux</h3>
-				<ul>
-					<li><a href="downloads/glcapsviewer_1_1_linux64.tar.gz">Version 1.1 (64-Bit)</a></li>
-				</ul>
-			</div>
 		</div>    
 	</div>
 </div>
 	
+<center>
+<?php include "footer.html"; ?>
+</center>
+
 </body>
 </html>

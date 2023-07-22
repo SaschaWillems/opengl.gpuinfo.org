@@ -1,4 +1,4 @@
- <?php
+<?php
 	/*
 		*
 		* OpenGL hardware capability database server implementation
@@ -19,7 +19,7 @@
 		*
 	*/
  
-	include 'header.html';
+	include 'header.php';
     include 'dbconfig.php';
 ?>
 

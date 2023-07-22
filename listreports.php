@@ -19,9 +19,7 @@
 		*
 	*/
 
-	session_start();
-
-	include 'header.html';
+	include 'header.php';
 
 	$negate = false;
     $searchType = '';
